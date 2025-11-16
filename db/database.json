@@ -1,0 +1,463 @@
+{
+  "usuarios": [
+    {
+      "id": 1,
+      "username": "admin",
+      "password_hash": "$2b$10$rGfVkPz.SHxhCqZ5xNxKweQqPLm5J3Z3vXqL1K3yZ3qL1K3yZ3qL1K",
+      "nombre_completo": "Administrador Demo",
+      "email": "admin@sanpaholmes.demo",
+      "role": "admin"
+    }
+  ],
+  "productos": [
+    {
+      "id": 1,
+      "nombre": "Tostado de jamón y queso",
+      "categoria": "merienda",
+      "subcategoria": "panificacion",
+      "precio": 2500,
+      "stock": 50,
+      "descripcion": "Tostado clásico con jamón y queso derretido",
+      "imagen_url": "https://images.unsplash.com/photo-1528735602780-2552fd46c7af?w=500",
+      "activo": true,
+      "creado_en": "2025-11-15T10:00:00.000Z"
+    },
+    {
+      "id": 2,
+      "nombre": "Tostado especial",
+      "categoria": "merienda",
+      "subcategoria": "panificacion",
+      "precio": 3000,
+      "stock": 50,
+      "descripcion": "Tostado con jamón, queso, tomate y huevo",
+      "imagen_url": "https://images.unsplash.com/photo-1619096252214-ef06c45683e3?w=500",
+      "activo": true,
+      "creado_en": "2025-11-15T10:00:00.000Z"
+    },
+    {
+      "id": 3,
+      "nombre": "Sándwich de miga (6 unidades)",
+      "categoria": "merienda",
+      "subcategoria": "panificacion",
+      "precio": 3500,
+      "stock": 30,
+      "descripcion": "Sándwiches de miga surtidos",
+      "imagen_url": "https://images.unsplash.com/photo-1509440159596-0249088772ff?w=500",
+      "activo": true,
+      "creado_en": "2025-11-15T10:00:00.000Z"
+    },
+    {
+      "id": 4,
+      "nombre": "Medialunas (3 unidades)",
+      "categoria": "merienda",
+      "subcategoria": "panificacion",
+      "precio": 2000,
+      "stock": 60,
+      "descripcion": "Medialunas dulces recién horneadas",
+      "imagen_url": "https://images.unsplash.com/photo-1555507036-ab1f4038808a?w=500",
+      "activo": true,
+      "creado_en": "2025-11-15T10:00:00.000Z"
+    },
+    {
+      "id": 5,
+      "nombre": "Churros con dulce de leche",
+      "categoria": "merienda",
+      "subcategoria": "panificacion",
+      "precio": 2500,
+      "stock": 40,
+      "descripcion": "Churros crujientes con dulce de leche",
+      "imagen_url": "https://images.unsplash.com/photo-1561052967-61fc91e48d79?w=500",
+      "activo": true,
+      "creado_en": "2025-11-15T10:00:00.000Z"
+    },
+    {
+      "id": 6,
+      "nombre": "Alfajor artesanal",
+      "categoria": "merienda",
+      "subcategoria": "confiteria",
+      "precio": 1500,
+      "stock": 80,
+      "descripcion": "Alfajor de dulce de leche cubierto de chocolate",
+      "imagen_url": "https://images.unsplash.com/photo-1606890737304-57a1ca8a5b62?w=500",
+      "activo": true,
+      "creado_en": "2025-11-15T10:00:00.000Z"
+    },
+    {
+      "id": 7,
+      "nombre": "Porción de torta",
+      "categoria": "merienda",
+      "subcategoria": "confiteria",
+      "precio": 3000,
+      "stock": 25,
+      "descripcion": "Porción generosa de torta casera",
+      "imagen_url": "https://images.unsplash.com/photo-1565958011703-44f9829ba187?w=500",
+      "activo": true,
+      "creado_en": "2025-11-15T10:00:00.000Z"
+    },
+    {
+      "id": 8,
+      "nombre": "Brownie",
+      "categoria": "merienda",
+      "subcategoria": "confiteria",
+      "precio": 2500,
+      "stock": 40,
+      "descripcion": "Brownie de chocolate con nueces",
+      "imagen_url": "https://images.unsplash.com/photo-1607920591413-4ec007e70023?w=500",
+      "activo": true,
+      "creado_en": "2025-11-15T10:00:00.000Z"
+    },
+    {
+      "id": 9,
+      "nombre": "Cookie gigante",
+      "categoria": "merienda",
+      "subcategoria": "confiteria",
+      "precio": 2000,
+      "stock": 50,
+      "descripcion": "Cookie de chocolate chips tamaño XL",
+      "imagen_url": "https://images.unsplash.com/photo-1499636136210-6f4ee915583e?w=500",
+      "activo": true,
+      "creado_en": "2025-11-15T10:00:00.000Z"
+    },
+    {
+      "id": 10,
+      "nombre": "Café",
+      "categoria": "merienda",
+      "subcategoria": "bebidas",
+      "precio": 1500,
+      "stock": 100,
+      "descripcion": "Café recién preparado",
+      "imagen_url": "https://images.unsplash.com/photo-1509042239860-f550ce710b93?w=500",
+      "activo": true,
+      "creado_en": "2025-11-15T10:00:00.000Z"
+    },
+    {
+      "id": 11,
+      "nombre": "Café con leche",
+      "categoria": "merienda",
+      "subcategoria": "bebidas",
+      "precio": 2000,
+      "stock": 100,
+      "descripcion": "Café con leche caliente",
+      "imagen_url": "https://images.unsplash.com/photo-1534778101976-62847782c213?w=500",
+      "activo": true,
+      "creado_en": "2025-11-15T10:00:00.000Z"
+    },
+    {
+      "id": 12,
+      "nombre": "Té",
+      "categoria": "merienda",
+      "subcategoria": "bebidas",
+      "precio": 1200,
+      "stock": 100,
+      "descripcion": "Té en saquitos variados",
+      "imagen_url": "https://images.unsplash.com/photo-1544787219-7f47ccb76574?w=500",
+      "activo": true,
+      "creado_en": "2025-11-15T10:00:00.000Z"
+    },
+    {
+      "id": 13,
+      "nombre": "Chocolatada",
+      "categoria": "merienda",
+      "subcategoria": "bebidas",
+      "precio": 2500,
+      "stock": 80,
+      "descripcion": "Leche chocolatada caliente",
+      "imagen_url": "https://images.unsplash.com/photo-1517487881594-2787fef5ebf7?w=500",
+      "activo": true,
+      "creado_en": "2025-11-15T10:00:00.000Z"
+    },
+    {
+      "id": 14,
+      "nombre": "Licuado",
+      "categoria": "merienda",
+      "subcategoria": "bebidas",
+      "precio": 3000,
+      "stock": 60,
+      "descripcion": "Licuado de frutas frescas",
+      "imagen_url": "https://images.unsplash.com/photo-1505252585461-04db1eb84625?w=500",
+      "activo": true,
+      "creado_en": "2025-11-15T10:00:00.000Z"
+    },
+    {
+      "id": 15,
+      "nombre": "Gaseosa (500ml)",
+      "categoria": "merienda",
+      "subcategoria": "bebidas",
+      "precio": 1800,
+      "stock": 100,
+      "descripcion": "Gaseosa fría sabores varios",
+      "imagen_url": "https://images.unsplash.com/photo-1629203851122-3726ecdf080e?w=500",
+      "activo": true,
+      "creado_en": "2025-11-15T10:00:00.000Z"
+    },
+    {
+      "id": 16,
+      "nombre": "Agua mineral",
+      "categoria": "merienda",
+      "subcategoria": "bebidas",
+      "precio": 1200,
+      "stock": 100,
+      "descripcion": "Agua mineral sin gas",
+      "imagen_url": "https://images.unsplash.com/photo-1548839140-29a749e1cf4d?w=500",
+      "activo": true,
+      "creado_en": "2025-11-15T10:00:00.000Z"
+    },
+    {
+      "id": 17,
+      "nombre": "Jugo exprimido",
+      "categoria": "merienda",
+      "subcategoria": "bebidas",
+      "precio": 2500,
+      "stock": 50,
+      "descripcion": "Jugo de naranja recién exprimido",
+      "imagen_url": "https://images.unsplash.com/photo-1600271886742-f049cd451bba?w=500",
+      "activo": true,
+      "creado_en": "2025-11-15T10:00:00.000Z"
+    },
+    {
+      "id": 18,
+      "nombre": "Hamburguesa completa",
+      "categoria": "cena",
+      "subcategoria": "principales",
+      "precio": 5000,
+      "stock": 40,
+      "descripcion": "Hamburguesa con lechuga, tomate, queso y papas",
+      "imagen_url": "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=500",
+      "activo": true,
+      "creado_en": "2025-11-15T10:00:00.000Z"
+    },
+    {
+      "id": 19,
+      "nombre": "Hamburguesa doble",
+      "categoria": "cena",
+      "subcategoria": "principales",
+      "precio": 6500,
+      "stock": 30,
+      "descripcion": "Doble carne con queso cheddar y bacon",
+      "imagen_url": "https://images.unsplash.com/photo-1550547660-d9450f859349?w=500",
+      "activo": true,
+      "creado_en": "2025-11-15T10:00:00.000Z"
+    },
+    {
+      "id": 20,
+      "nombre": "Pancho completo",
+      "categoria": "cena",
+      "subcategoria": "principales",
+      "precio": 3500,
+      "stock": 50,
+      "descripcion": "Pancho con todos los aderezos",
+      "imagen_url": "https://images.unsplash.com/photo-1612392062422-ef19b42f74df?w=500",
+      "activo": true,
+      "creado_en": "2025-11-15T10:00:00.000Z"
+    },
+    {
+      "id": 21,
+      "nombre": "Pizza individual",
+      "categoria": "cena",
+      "subcategoria": "principales",
+      "precio": 4500,
+      "stock": 35,
+      "descripcion": "Pizza muzzarella individual",
+      "imagen_url": "https://images.unsplash.com/photo-1513104890138-7c749659a591?w=500",
+      "activo": true,
+      "creado_en": "2025-11-15T10:00:00.000Z"
+    },
+    {
+      "id": 22,
+      "nombre": "Empanadas (3 unidades)",
+      "categoria": "cena",
+      "subcategoria": "principales",
+      "precio": 3000,
+      "stock": 60,
+      "descripcion": "Empanadas de carne, pollo o jamón y queso",
+      "imagen_url": "https://images.unsplash.com/photo-1601050690597-df0568f70950?w=500",
+      "activo": true,
+      "creado_en": "2025-11-15T10:00:00.000Z"
+    },
+    {
+      "id": 23,
+      "nombre": "Milanesa con papas",
+      "categoria": "cena",
+      "subcategoria": "principales",
+      "precio": 5500,
+      "stock": 30,
+      "descripcion": "Milanesa napolitana con papas fritas",
+      "imagen_url": "https://images.unsplash.com/photo-1600891964599-f61ba0e24092?w=500",
+      "activo": true,
+      "creado_en": "2025-11-15T10:00:00.000Z"
+    },
+    {
+      "id": 24,
+      "nombre": "Lomito completo",
+      "categoria": "cena",
+      "subcategoria": "principales",
+      "precio": 6000,
+      "stock": 25,
+      "descripcion": "Lomito con todos los ingredientes",
+      "imagen_url": "https://images.unsplash.com/photo-1606755962773-d324e0a13086?w=500",
+      "activo": true,
+      "creado_en": "2025-11-15T10:00:00.000Z"
+    },
+    {
+      "id": 25,
+      "nombre": "Papas fritas",
+      "categoria": "cena",
+      "subcategoria": "guarniciones",
+      "precio": 2500,
+      "stock": 80,
+      "descripcion": "Porción grande de papas fritas",
+      "imagen_url": "https://images.unsplash.com/photo-1573080496219-bb080dd4f877?w=500",
+      "activo": true,
+      "creado_en": "2025-11-15T10:00:00.000Z"
+    },
+    {
+      "id": 26,
+      "nombre": "Aros de cebolla",
+      "categoria": "cena",
+      "subcategoria": "guarniciones",
+      "precio": 2800,
+      "stock": 60,
+      "descripcion": "Aros de cebolla rebozados y fritos",
+      "imagen_url": "https://images.unsplash.com/photo-1639024471283-03518883512d?w=500",
+      "activo": true,
+      "creado_en": "2025-11-15T10:00:00.000Z"
+    },
+    {
+      "id": 27,
+      "nombre": "Ensalada",
+      "categoria": "cena",
+      "subcategoria": "guarniciones",
+      "precio": 2000,
+      "stock": 50,
+      "descripcion": "Ensalada mixta fresca",
+      "imagen_url": "https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=500",
+      "activo": true,
+      "creado_en": "2025-11-15T10:00:00.000Z"
+    },
+    {
+      "id": 28,
+      "nombre": "Cerveza",
+      "categoria": "cena",
+      "subcategoria": "bebidas",
+      "precio": 2500,
+      "stock": 80,
+      "descripcion": "Cerveza fría 473ml",
+      "imagen_url": "https://images.unsplash.com/photo-1608270586620-248524c67de9?w=500",
+      "activo": true,
+      "creado_en": "2025-11-15T10:00:00.000Z"
+    },
+    {
+      "id": 29,
+      "nombre": "Gaseosa (1.5L)",
+      "categoria": "cena",
+      "subcategoria": "bebidas",
+      "precio": 2800,
+      "stock": 60,
+      "descripcion": "Gaseosa familiar 1.5 litros",
+      "imagen_url": "https://images.unsplash.com/photo-1629203851122-3726ecdf080e?w=500",
+      "activo": true,
+      "creado_en": "2025-11-15T10:00:00.000Z"
+    },
+    {
+      "id": 30,
+      "nombre": "Agua saborizada",
+      "categoria": "cena",
+      "subcategoria": "bebidas",
+      "precio": 1500,
+      "stock": 80,
+      "descripcion": "Agua con sabor a frutas",
+      "imagen_url": "https://images.unsplash.com/photo-1559839914-17aae19338c6?w=500",
+      "activo": true,
+      "creado_en": "2025-11-15T10:00:00.000Z"
+    }
+  ],
+  "compras": [
+    {
+      "id": 1,
+      "comprador_nombre": "Juan Pérez",
+      "comprador_mesa": 5,
+      "comprador_telefono": "+54 9 11 1234-5678",
+      "metodo_pago": "efectivo",
+      "comprobante_archivo": null,
+      "total": 12500,
+      "fecha": "2025-11-15T14:30:00.000Z",
+      "estado": "completado",
+      "abonado": true,
+      "listo": true,
+      "entregado": true,
+      "detalles_pedido": "Sin cebolla en la hamburguesa",
+      "items": [
+        {
+          "producto_id": 18,
+          "cantidad": 2,
+          "precio_unitario": 5000,
+          "subtotal": 10000
+        },
+        {
+          "producto_id": 15,
+          "cantidad": 2,
+          "precio_unitario": 1800,
+          "subtotal": 3600
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "comprador_nombre": "María González",
+      "comprador_mesa": 12,
+      "comprador_telefono": "+54 9 11 9876-5432",
+      "metodo_pago": "transferencia",
+      "comprobante_archivo": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==",
+      "total": 8500,
+      "fecha": "2025-11-15T15:45:00.000Z",
+      "estado": "pendiente",
+      "abonado": true,
+      "listo": false,
+      "entregado": false,
+      "detalles_pedido": "",
+      "items": [
+        {
+          "producto_id": 21,
+          "cantidad": 1,
+          "precio_unitario": 4500,
+          "subtotal": 4500
+        },
+        {
+          "producto_id": 29,
+          "cantidad": 1,
+          "precio_unitario": 2800,
+          "subtotal": 2800
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "comprador_nombre": "Carlos Rodríguez",
+      "comprador_mesa": 8,
+      "comprador_telefono": "+54 9 11 5555-1234",
+      "metodo_pago": "efectivo",
+      "comprobante_archivo": null,
+      "total": 7500,
+      "fecha": "2025-11-15T16:20:00.000Z",
+      "estado": "completado",
+      "abonado": true,
+      "listo": true,
+      "entregado": true,
+      "detalles_pedido": "Extra papas",
+      "items": [
+        {
+          "producto_id": 1,
+          "cantidad": 2,
+          "precio_unitario": 2500,
+          "subtotal": 5000
+        },
+        {
+          "producto_id": 10,
+          "cantidad": 2,
+          "precio_unitario": 1500,
+          "subtotal": 3000
+        }
+      ]
+    }
+  ]
+}
