@@ -4,7 +4,7 @@
 const express = require('express');
 const router = express.Router();
 const UsuarioController = require('../controllers/UsuarioController');
-const { verificarToken, verificarPermiso } = require('../middleware/auth');
+const { verificarAutenticacion, verificarPermiso } = require('../middleware/auth');
 
 // Middleware para detectar entorno Vercel
 const bloquearEscrituraEnVercel = (req, res, next) => {
@@ -23,7 +23,7 @@ const bloquearEscrituraEnVercel = (req, res, next) => {
 };
 
 // Todas las rutas requieren autenticación
-router.use(verificarToken);
+router.use(verificarAutenticacion);
 
 // GET /api/usuarios - Listar todos los usuarios (admin y vendedor pueden ver)
 router.get('/', 
