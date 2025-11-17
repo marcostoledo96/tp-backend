@@ -4,10 +4,16 @@ import { useNavigate } from 'react-router-dom';
 import { PoliceButton } from './PoliceButton';
 import { Trash2, Plus, Minus, ShoppingBag, FolderOpen } from 'lucide-react';
 import { ImageWithFallback } from './ImageWithFallback';
+import { useEffect } from 'react';
 
 export function Cart() {
   const { cart, updateQuantity, removeFromCart, getTotal } = useCart();
   const navigate = useNavigate();
+
+  // Scroll to top cuando se monta el componente
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
 
   if (cart.length === 0) {
     return (

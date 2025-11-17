@@ -8,6 +8,9 @@ const CompraController = require('../controllers/CompraController');
 const { verificarAutenticacion, verificarPermiso } = require('../middleware/auth');
 const multer = require('multer');
 
+// Detectar si estamos en Vercel (modo DEMO - solo lectura)
+const IS_VERCEL = process.env.VERCEL === '1' || process.env.VERCEL_ENV;
+
 // Configuración de multer para mantener archivo en MEMORIA
 const storage = multer.memoryStorage();
 
@@ -28,8 +31,19 @@ const upload = multer({
   }
 });
 
-// 🛍️ POST /api/compras - Crear una nueva compra (público)
-router.post('/', upload.single('comprobante'), CompraController.crearCompra);
+// Middleware para bloquear creación de compras en Vercel
+const bloquearComprasEnVercel = (req, res, next) => {
+  if (IS_VERCEL) {
+    return res.status(403).json({
+      success: false,
+      mensaje: '🚫 Versión DEMO - No se pueden crear compras reales en la demostración. Los datos no persisten.'
+    });
+  }
+  next();
+};
+
+// 🛍️ POST /api/compras - Crear una nueva compra (BLOQUEADO EN VERCEL)
+router.post('/', bloquearComprasEnVercel, upload.single('comprobante'), CompraController.crearCompra);
 
 // 📋 GET /api/compras - Listar todas las compras (requiere autenticación y permisos)
 router.get('/', verificarAutenticacion, verificarPermiso('ver_compras'), CompraController.listarCompras);

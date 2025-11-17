@@ -8,6 +8,19 @@ export function LandingPage() {
 
   return (
     <div className="min-h-screen overflow-x-hidden">
+      {/* Banner DEMO - Solo visible en producción */}
+      {import.meta.env.PROD && (
+        <div className="bg-gradient-to-r from-red-600 via-red-500 to-red-600 border-b-4 border-yellow-400 py-3 px-4 shadow-lg">
+          <div className="max-w-6xl mx-auto flex items-center justify-center gap-3 text-center">
+            <span className="text-2xl">⚠️</span>
+            <p className="text-white font-bold text-sm sm:text-base">
+              VERSIÓN DEMO - Sin persistencia de datos. Los cambios no se guardan permanentemente.
+            </p>
+            <span className="text-2xl">⚠️</span>
+          </div>
+        </div>
+      )}
+
       {/* Hero Section - Mejorado con mejor centrado */}
       <div 
         className="relative min-h-[500px] sm:min-h-[700px] flex items-center justify-center px-3"
