@@ -33,7 +33,7 @@ interface Estadistica {
   cantidad: number;
 }
 
-export function RolesAdmin() {
+export function UsuariosAdmin() {
   const [usuarios, setUsuarios] = useState<Usuario[]>([]);
   const [roles, setRoles] = useState<Role[]>([]);
   const [estadisticas, setEstadisticas] = useState<Estadistica[]>([]);
