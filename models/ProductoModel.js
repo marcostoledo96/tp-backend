@@ -222,6 +222,41 @@ function actualizarStock(id, nuevoStock) {
   return result.changes > 0;
 }
 
+/**
+ * Descontar stock de un producto (para cuando se confirma una compra)
+ * @param {number} id - ID del producto
+ * @param {number} cantidad - Cantidad a descontar
+ * @returns {boolean} true si se actualizó correctamente
+ */
+function descontarStock(id, cantidad) {
+  const db = getDB();
+  
+  // Primero verificar que hay stock suficiente
+  const producto = db.prepare('SELECT stock FROM productos WHERE id = ?').get(id);
+  
+  if (!producto) {
+    db.close();
+    throw new Error(`Producto con ID ${id} no encontrado`);
+  }
+  
+  if (producto.stock < cantidad) {
+    db.close();
+    throw new Error(`Stock insuficiente para producto ID ${id}. Disponible: ${producto.stock}, Solicitado: ${cantidad}`);
+  }
+  
+  // Descontar el stock
+  const stmt = db.prepare(`
+    UPDATE productos
+    SET stock = stock - ?
+    WHERE id = ? AND stock >= ?
+  `);
+  
+  const result = stmt.run(cantidad, id, cantidad);
+  db.close();
+  
+  return result.changes > 0;
+}
+
 module.exports = {
   obtenerProductos,
   obtenerTodosLosProductos,
@@ -230,5 +265,6 @@ module.exports = {
   actualizarProducto,
   eliminarProducto,
   eliminarProductoPermanente,
-  actualizarStock
+  actualizarStock,
+  descontarStock
 };

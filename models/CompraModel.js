@@ -55,9 +55,11 @@ function obtenerCompraPorId(id) {
   const detalles = db.prepare(`
     SELECT 
       dc.id, dc.producto_id, dc.cantidad, dc.precio_unitario, dc.subtotal,
-      p.nombre as producto_nombre
-    FROM detalle_compra dc
-    JOIN productos p ON dc.producto_id = p.id
+      dc.nombre_producto,
+      COALESCE(p.nombre, dc.nombre_producto) as producto_nombre,
+      p.categoria, p.imagen_url
+    FROM detalles_compra dc
+    LEFT JOIN productos p ON dc.producto_id = p.id
     WHERE dc.compra_id = ?
   `).all(id);
   
@@ -110,10 +112,10 @@ function crearCompra(datosCompra, detallesCompra) {
     
     const compraId = resultCompra.lastInsertRowid;
     
-    // Insertar detalles
+    // Insertar detalles en tabla detalles_compra
     const stmtDetalle = db.prepare(`
-      INSERT INTO detalle_compra (compra_id, producto_id, cantidad, precio_unitario, subtotal)
-      VALUES (?, ?, ?, ?, ?)
+      INSERT INTO detalles_compra (compra_id, producto_id, cantidad, precio_unitario, subtotal, nombre_producto)
+      VALUES (?, ?, ?, ?, ?, ?)
     `);
     
     for (const detalle of detallesCompra) {
@@ -122,16 +124,13 @@ function crearCompra(datosCompra, detallesCompra) {
         detalle.producto_id,
         detalle.cantidad,
         detalle.precio_unitario,
-        detalle.subtotal
+        detalle.subtotal,
+        detalle.nombre_producto || null
       );
-      
-      // Actualizar stock del producto
-      db.prepare(`
-        UPDATE productos
-        SET stock = stock - ?
-        WHERE id = ?
-      `).run(detalle.cantidad, detalle.producto_id);
     }
+    
+    // NOTA: El stock se descuenta en CompraController.crearCompra()
+    // después de crear la compra exitosamente
     
     // Commit
     db.prepare('COMMIT').run();

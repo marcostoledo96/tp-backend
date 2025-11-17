@@ -82,20 +82,28 @@ db.exec(`
 `);
 console.log('  ✓ Tabla compras');
 
-// Tabla de detalle de compras
+// Tabla de detalles de compras (relación N:M entre compras y productos)
 db.exec(`
-  CREATE TABLE IF NOT EXISTS detalle_compra (
+  CREATE TABLE IF NOT EXISTS detalles_compra (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     compra_id INTEGER NOT NULL,
     producto_id INTEGER NOT NULL,
     cantidad INTEGER NOT NULL,
     precio_unitario REAL NOT NULL,
     subtotal REAL NOT NULL,
+    nombre_producto TEXT,
     FOREIGN KEY (compra_id) REFERENCES compras(id) ON DELETE CASCADE,
-    FOREIGN KEY (producto_id) REFERENCES productos(id)
+    FOREIGN KEY (producto_id) REFERENCES productos(id) ON DELETE SET NULL
   )
 `);
-console.log('  ✓ Tabla detalle_compra');
+console.log('  ✓ Tabla detalles_compra');
+
+// Crear índices para mejorar performance
+db.exec(`
+  CREATE INDEX IF NOT EXISTS idx_detalles_compra_compra_id ON detalles_compra(compra_id);
+  CREATE INDEX IF NOT EXISTS idx_detalles_compra_producto_id ON detalles_compra(producto_id);
+`);
+console.log('  ✓ Índices creados');
 
 console.log('');
 

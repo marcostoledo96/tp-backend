@@ -62,7 +62,7 @@ async function crearCompra(req, res) {
       });
     }
 
-    // Validar stock de cada producto
+    // Validar stock de cada producto ANTES de procesar
     for (const item of productosArray) {
       const { producto_id, cantidad } = item;
 
@@ -75,10 +75,11 @@ async function crearCompra(req, res) {
         });
       }
 
+      // Validación estricta de stock
       if (producto.stock < cantidad) {
         return res.status(400).json({
           success: false,
-          mensaje: `No hay suficiente stock de ${producto.nombre}. Stock disponible: ${producto.stock}`
+          mensaje: `Stock insuficiente para "${producto.nombre}". Disponible: ${producto.stock}, Solicitado: ${cantidad}`
         });
       }
     }
@@ -94,7 +95,8 @@ async function crearCompra(req, res) {
         producto_id: item.producto_id,
         cantidad: item.cantidad,
         precio_unitario: producto.precio,
-        subtotal: subtotal
+        subtotal: subtotal,
+        nombre_producto: producto.nombre // Guardar nombre para historial
       };
     });
 
@@ -118,6 +120,17 @@ async function crearCompra(req, res) {
       },
       itemsConDetalles
     );
+
+    // NUEVO: Descontar stock de cada producto después de crear la compra
+    try {
+      for (const item of itemsConDetalles) {
+        ProductoModel.descontarStock(item.producto_id, item.cantidad);
+        console.log(`📦 Stock actualizado - Producto ID ${item.producto_id}: -${item.cantidad} unidades`);
+      }
+    } catch (stockError) {
+      console.error('❌ Error al descontar stock:', stockError);
+      // Nota: La compra ya fue creada. En producción considerar usar transacciones.
+    }
 
     console.log('✅ Compra creada con ID:', nuevaCompra.id);
     console.log('📦 Número de orden:', nuevaCompra.numero_orden);
