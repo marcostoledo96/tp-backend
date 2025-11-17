@@ -10,6 +10,20 @@ require('dotenv').config();
 
 const app = express();
 
+// Inicializar DB en Vercel (copiar a /tmp)
+const { IS_VERCEL } = require('./models/database');
+if (IS_VERCEL) {
+  console.log('🔧 Inicializando DB para Vercel en /tmp...');
+  const { getDB } = require('./models/database');
+  try {
+    const db = getDB();
+    db.close();
+    console.log('✅ DB inicializada correctamente en Vercel');
+  } catch (error) {
+    console.error('❌ Error al inicializar DB:', error);
+  }
+}
+
 // Middlewares globales
 app.use(cors()); // Permite peticiones desde otros dominios
 app.use(express.json()); // Para leer JSON en las peticiones
