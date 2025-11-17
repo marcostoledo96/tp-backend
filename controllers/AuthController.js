@@ -6,8 +6,8 @@ const UsuarioModel = require('../models/UsuarioModel');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 
-// Clave secreta para firmar tokens JWT
-const JWT_SECRET = process.env.JWT_SECRET || 'sanpaholmes-demo-secret-2025';
+// Clave secreta para firmar tokens JWT (debe coincidir con middleware/auth.js)
+const JWT_SECRET = process.env.JWT_SECRET || 'sanpaholmes-secret-key-2025';
 
 /**
  * Inicio de sesión
