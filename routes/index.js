@@ -10,12 +10,14 @@ const productosRoutes = require('./productos');
 const comprasRoutes = require('./compras');
 const authRoutes = require('./auth');
 const rolesRoutes = require('./roles');
+const usuariosRoutes = require('./usuarios');
 
 // Montar rutas
 router.use('/productos', productosRoutes);
 router.use('/compras', comprasRoutes);
 router.use('/auth', authRoutes);
 router.use('/roles', rolesRoutes);
+router.use('/usuarios', usuariosRoutes);
 
 // Ruta de health check
 router.get('/health', (req, res) => {

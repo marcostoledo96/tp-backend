@@ -72,9 +72,9 @@ try {
     VALUES (?, ?)
   `);
 
-  insertRole.run('admin', 'Administrador con acceso total al sistema');
-  insertRole.run('vendor', 'Vendedor con acceso al panel de ventas');
-  insertRole.run('readonly', 'Solo lectura, no puede modificar datos');
+  insertRole.run('admin', 'Administrador - Acceso total: CRUD productos, ventas y usuarios');
+  insertRole.run('vendedor', 'Vendedor - CRUD productos y ventas (sin crear usuarios)');
+  insertRole.run('visitador', 'Visitador - Solo visualización de productos y ventas');
   
   console.log('✅ Roles insertados');
 
@@ -109,8 +109,8 @@ try {
   console.log('\n7️⃣ Asignando permisos a roles...');
   
   const roleAdmin = db.prepare('SELECT id FROM roles WHERE nombre = ?').get('admin');
-  const roleVendor = db.prepare('SELECT id FROM roles WHERE nombre = ?').get('vendor');
-  const roleReadonly = db.prepare('SELECT id FROM roles WHERE nombre = ?').get('readonly');
+  const roleVendedor = db.prepare('SELECT id FROM roles WHERE nombre = ?').get('vendedor');
+  const roleVisitador = db.prepare('SELECT id FROM roles WHERE nombre = ?').get('visitador');
   
   const todosLosPermisos = db.prepare('SELECT id FROM permisos').all();
   
@@ -119,31 +119,39 @@ try {
     VALUES (?, ?)
   `);
   
-  // Admin: todos los permisos
+  // Admin: TODOS los permisos (gestiona productos, ventas Y usuarios)
   for (const permiso of todosLosPermisos) {
     insertRolePermiso.run(roleAdmin.id, permiso.id);
   }
-  console.log(`  ✓ Admin: ${todosLosPermisos.length} permisos asignados`);
+  console.log(`  ✓ Admin: ${todosLosPermisos.length} permisos asignados (acceso total)`);
   
-  // Vendor: permisos de lectura y gestión básica
-  const permisosVendor = ['ver_productos', 'ver_compras', 'editar_compras', 'crear_compra'];
-  for (const nombrePermiso of permisosVendor) {
+  // Vendedor: CRUD productos y ventas (SIN gestionar usuarios)
+  const permisosVendedor = [
+    'ver_productos', 
+    'gestionar_productos', 
+    'crear_compra', 
+    'ver_compras', 
+    'editar_compras', 
+    'eliminar_compras',
+    'ver_roles' // puede ver roles pero no modificarlos
+  ];
+  for (const nombrePermiso of permisosVendedor) {
     const permiso = db.prepare('SELECT id FROM permisos WHERE nombre = ?').get(nombrePermiso);
     if (permiso) {
-      insertRolePermiso.run(roleVendor.id, permiso.id);
+      insertRolePermiso.run(roleVendedor.id, permiso.id);
     }
   }
-  console.log(`  ✓ Vendor: ${permisosVendor.length} permisos asignados`);
+  console.log(`  ✓ Vendedor: ${permisosVendedor.length} permisos asignados (CRUD productos/ventas)`);
   
-  // Readonly: solo ver
-  const permisosReadonly = ['ver_productos', 'ver_compras'];
-  for (const nombrePermiso of permisosReadonly) {
+  // Visitador: SOLO lectura de productos y ventas
+  const permisosVisitador = ['ver_productos', 'ver_compras'];
+  for (const nombrePermiso of permisosVisitador) {
     const permiso = db.prepare('SELECT id FROM permisos WHERE nombre = ?').get(nombrePermiso);
     if (permiso) {
-      insertRolePermiso.run(roleReadonly.id, permiso.id);
+      insertRolePermiso.run(roleVisitador.id, permiso.id);
     }
   }
-  console.log(`  ✓ Readonly: ${permisosReadonly.length} permisos asignados`);
+  console.log(`  ✓ Visitador: ${permisosVisitador.length} permisos asignados (solo lectura)`);
 
   // 8. Asignar rol admin al usuario admin existente
   console.log('\n8️⃣ Asignando rol al usuario admin...');

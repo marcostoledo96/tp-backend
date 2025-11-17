@@ -824,7 +824,7 @@ export function AdminPanelNew() {
           <h1 className="text-white mb-3">Administración del Sistema</h1>
           <p className="text-gray-400 text-lg">Gestión de productos y visualización de ventas</p>
           
-          {/* Botón para acceder a roles */}
+          {/* Botón para acceder a gestión de usuarios */}
           {user?.role === 'admin' && (
             <div className="mt-4">
               <PoliceButton
@@ -832,7 +832,7 @@ export function AdminPanelNew() {
                 icon={Shield}
                 onClick={() => navigate('/vendor/roles')}
               >
-                Gestionar Roles y Permisos
+                Gestionar Usuarios y Permisos
               </PoliceButton>
             </div>
           )}
