@@ -1,7 +1,7 @@
 // Controller para gestión de usuarios (CRUD)
 // Solo accesible para usuarios con rol admin
 
-const db = require('../db/connection');
+const { getDB } = require('../models/database');
 const bcrypt = require('bcrypt');
 const RoleModel = require('../models/RoleModel');
 
@@ -10,7 +10,9 @@ class UsuarioController {
    * Listar todos los usuarios con su rol
    */
   static async listarUsuarios(req, res) {
+    let db;
     try {
+      db = getDB();
       const usuarios = db.prepare(`
         SELECT 
           u.id,
@@ -37,6 +39,8 @@ class UsuarioController {
         ORDER BY r.id
       `).all();
 
+      db.close();
+
       res.json({
         success: true,
         usuarios,
@@ -44,6 +48,7 @@ class UsuarioController {
       });
     } catch (error) {
       console.error('Error al listar usuarios:', error);
+      if (db) db.close();
       res.status(500).json({
         success: false,
         mensaje: 'Error al obtener usuarios'
@@ -55,8 +60,10 @@ class UsuarioController {
    * Obtener un usuario específico por ID con sus permisos
    */
   static async obtenerUsuarioPorId(req, res) {
+    let db;
     try {
       const { id } = req.params;
+      db = getDB();
 
       const usuario = db.prepare(`
         SELECT 
@@ -89,12 +96,15 @@ class UsuarioController {
 
       usuario.permisos = permisos;
 
+      db.close();
+
       res.json({
         success: true,
         usuario
       });
     } catch (error) {
       console.error('Error al obtener usuario:', error);
+      if (db) db.close();
       res.status(500).json({
         success: false,
         mensaje: 'Error al obtener usuario'
@@ -106,8 +116,10 @@ class UsuarioController {
    * Crear nuevo usuario
    */
   static async crearUsuario(req, res) {
+    let db;
     try {
       const { username, password, nombre, role_id } = req.body;
+      db = getDB();
 
       // Validaciones
       if (!username || !password || !nombre || !role_id) {
@@ -158,6 +170,8 @@ class UsuarioController {
         VALUES (?, ?, ?, ?)
       `).run(username, hashedPassword, nombre, role_id);
 
+      db.close();
+
       res.status(201).json({
         success: true,
         mensaje: 'Usuario creado exitosamente',
@@ -171,6 +185,7 @@ class UsuarioController {
       });
     } catch (error) {
       console.error('Error al crear usuario:', error);
+      if (db) db.close();
       res.status(500).json({
         success: false,
         mensaje: 'Error al crear usuario'
@@ -182,9 +197,11 @@ class UsuarioController {
    * Actualizar usuario (datos básicos y rol)
    */
   static async actualizarUsuario(req, res) {
+    let db;
     try {
       const { id } = req.params;
       const { username, nombre, role_id } = req.body;
+      db = getDB();
 
       // Verificar que el usuario existe
       const usuario = db.prepare('SELECT * FROM usuarios WHERE id = ?').get(id);
@@ -254,12 +271,15 @@ class UsuarioController {
       
       db.prepare(query).run(...values);
 
+      db.close();
+
       res.json({
         success: true,
         mensaje: 'Usuario actualizado exitosamente'
       });
     } catch (error) {
       console.error('Error al actualizar usuario:', error);
+      if (db) db.close();
       res.status(500).json({
         success: false,
         mensaje: 'Error al actualizar usuario'
@@ -271,9 +291,11 @@ class UsuarioController {
    * Cambiar contraseña de usuario
    */
   static async cambiarPassword(req, res) {
+    let db;
     try {
       const { id } = req.params;
       const { password, password_confirm } = req.body;
+      db = getDB();
 
       if (!password || !password_confirm) {
         return res.status(400).json({
@@ -310,12 +332,15 @@ class UsuarioController {
 
       db.prepare('UPDATE usuarios SET password_hash = ? WHERE id = ?').run(hashedPassword, id);
 
+      db.close();
+
       res.json({
         success: true,
         mensaje: 'Contraseña actualizada exitosamente'
       });
     } catch (error) {
       console.error('Error al cambiar contraseña:', error);
+      if (db) db.close();
       res.status(500).json({
         success: false,
         mensaje: 'Error al cambiar contraseña'
@@ -327,8 +352,10 @@ class UsuarioController {
    * Eliminar usuario (dar de baja)
    */
   static async eliminarUsuario(req, res) {
+    let db;
     try {
       const { id } = req.params;
+      db = getDB();
 
       // No permitir eliminar al admin principal (id = 1)
       if (parseInt(id) === 1) {
@@ -357,18 +384,21 @@ class UsuarioController {
       const result = db.prepare('DELETE FROM usuarios WHERE id = ?').run(id);
 
       if (result.changes > 0) {
+        db.close();
         res.json({
           success: true,
           mensaje: `Usuario ${usuario.username} eliminado exitosamente`
         });
       } else {
-        res.status(500).json({
+        db.close();
+        res.status(404).json({
           success: false,
           mensaje: 'No se pudo eliminar el usuario'
         });
       }
     } catch (error) {
       console.error('Error al eliminar usuario:', error);
+      if (db) db.close();
       res.status(500).json({
         success: false,
         mensaje: 'Error al eliminar usuario'

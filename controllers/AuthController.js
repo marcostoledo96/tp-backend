@@ -3,6 +3,7 @@
 // Parte del patrón MVC - Controlador que conecta rutas con modelos
 
 const UsuarioModel = require('../models/UsuarioModel');
+const RoleModel = require('../models/RoleModel');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 
@@ -50,13 +51,21 @@ async function login(req, res) {
 
     console.log('✅ Login exitoso para:', username);
 
+    // Obtener permisos reales del usuario desde la base de datos
+    const permisos = RoleModel.obtenerPermisosUsuario(user.id);
+    const nombresPermisos = permisos.map(p => p.nombre);
+
+    console.log('🔐 Permisos del usuario:', nombresPermisos);
+
     // Generar token JWT
     const token = jwt.sign(
       {
         userId: user.id,
         username: user.username,
         roles: [user.role],
-        permisos: ['ver_productos', 'gestionar_productos', 'ver_compras', 'crear_compra', 'editar_compras', 'eliminar_compras']
+        role: user.role,  // Agregar role como string para compatibilidad
+        role_id: user.role_id,
+        permisos: nombresPermisos
       },
       JWT_SECRET,
       { expiresIn: '24h' }
@@ -73,7 +82,8 @@ async function login(req, res) {
         nombre_completo: user.nombre_completo,
         email: user.email,
         roles: [user.role],
-        permisos: ['ver_productos', 'gestionar_productos', 'ver_compras', 'crear_compra', 'editar_compras', 'eliminar_compras']
+        role: user.role,
+        permisos: nombresPermisos
       }
     });
 
