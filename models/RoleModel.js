@@ -6,7 +6,8 @@ const { getDB } = require('./database');
 
 /**
  * Obtener todos los roles
- * @returns {Array} Lista de roles
+ * Yo: modifico para incluir los permisos de cada rol en la lista
+ * @returns {Array} Lista de roles con sus permisos
  */
 function obtenerRoles() {
   const db = getDB();
@@ -16,12 +17,27 @@ function obtenerRoles() {
     WHERE activo = 1
     ORDER BY nombre
   `).all();
+  
+  // Yo: para cada rol, obtengo sus permisos
+  const rolesConPermisos = roles.map(rol => {
+    const permisos = db.prepare(`
+      SELECT p.id, p.nombre, p.descripcion, p.categoria
+      FROM permisos p
+      INNER JOIN roles_permisos rp ON p.id = rp.permiso_id
+      WHERE rp.role_id = ?
+      ORDER BY p.categoria, p.nombre
+    `).all(rol.id);
+    
+    return {
+      ...rol,
+      activo: Boolean(rol.activo),
+      permisos
+    };
+  });
+  
   db.close();
   
-  return roles.map(r => ({
-    ...r,
-    activo: Boolean(r.activo)
-  }));
+  return rolesConPermisos;
 }
 
 /**
@@ -128,6 +144,10 @@ function actualizarRol(id, datos, permisos = null) {
   try {
     db.prepare('BEGIN TRANSACTION').run();
     
+    console.log('🔧 Actualizando rol ID:', id);
+    console.log('   Datos:', datos);
+    console.log('   Permisos nuevos:', permisos);
+    
     // Actualizar rol
     const stmt = db.prepare(`
       UPDATE roles
@@ -144,6 +164,8 @@ function actualizarRol(id, datos, permisos = null) {
       id
     );
     
+    console.log('   UPDATE roles changes:', result.changes);
+    
     if (result.changes === 0) {
       db.prepare('ROLLBACK').run();
       db.close();
@@ -153,7 +175,8 @@ function actualizarRol(id, datos, permisos = null) {
     // Actualizar permisos si se proporcionaron
     if (permisos !== null) {
       // Eliminar permisos actuales
-      db.prepare('DELETE FROM roles_permisos WHERE role_id = ?').run(id);
+      const deleteResult = db.prepare('DELETE FROM roles_permisos WHERE role_id = ?').run(id);
+      console.log('   DELETE roles_permisos changes:', deleteResult.changes);
       
       // Insertar nuevos permisos
       if (permisos.length > 0) {
@@ -163,12 +186,18 @@ function actualizarRol(id, datos, permisos = null) {
         `);
         
         for (const permisoId of permisos) {
-          stmtPermiso.run(id, permisoId);
+          const insertResult = stmtPermiso.run(id, permisoId);
+          console.log(`   INSERT permiso ${permisoId} -> changes:`, insertResult.changes);
         }
+      } else {
+        console.log('   No hay permisos para insertar (array vacío)');
       }
+    } else {
+      console.log('   No se actualizaron permisos (permisos = null)');
     }
     
     db.prepare('COMMIT').run();
+    console.log('✅ Transacción COMMIT exitosa');
     db.close();
     
     return {
@@ -178,6 +207,7 @@ function actualizarRol(id, datos, permisos = null) {
     };
     
   } catch (error) {
+    console.error('❌ Error en actualizarRol, haciendo ROLLBACK:', error);
     db.prepare('ROLLBACK').run();
     db.close();
     throw error;

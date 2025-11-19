@@ -111,6 +111,14 @@ async function actualizarRol(req, res) {
     const { id } = req.params;
     const { nombre, descripcion, activo, permisos } = req.body;
     
+    // Yo: agrego logs para debug
+    console.log('📥 Datos recibidos en actualizarRol:');
+    console.log('  - ID:', id);
+    console.log('  - Nombre:', nombre);
+    console.log('  - Descripción:', descripcion);
+    console.log('  - Activo:', activo);
+    console.log('  - Permisos:', permisos);
+    
     // Validaciones
     if (!nombre) {
       return res.status(400).json({
@@ -135,6 +143,7 @@ async function actualizarRol(req, res) {
     }
     
     console.log('✅ Rol actualizado:', rolActualizado.nombre);
+    console.log('   Permisos asignados:', permisoIds);
     
     res.json({
       success: true,
@@ -142,7 +151,7 @@ async function actualizarRol(req, res) {
       rol: rolActualizado
     });
   } catch (error) {
-    console.error('Error al actualizar rol:', error);
+    console.error('❌ Error al actualizar rol:', error);
     
     if (error.message.includes('UNIQUE constraint')) {
       return res.status(400).json({
