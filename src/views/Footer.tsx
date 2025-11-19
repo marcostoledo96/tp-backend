@@ -72,16 +72,7 @@ export function Footer() {
               </div>
             </div>
             
-            {/* Botón Panel Admin - MÁS GRANDE Y VISIBLE */}
-            <a 
-              href="/vendor/login" 
-              className="mt-6 inline-block w-full max-w-xs bg-gradient-to-r from-[#fbbf24] to-[#f59e0b] hover:from-[#f59e0b] hover:to-[#fbbf24] text-black font-bold py-4 px-6 rounded-2xl shadow-2xl shadow-[#fbbf24]/30 hover:shadow-[#fbbf24]/50 transition-all transform hover:scale-105 cursor-pointer"
-            >
-              <div className="flex items-center justify-center gap-3">
-                <span className="material-icons text-2xl">admin_panel_settings</span>
-                <span className="text-lg">Panel de Administración</span>
-              </div>
-            </a>
+            {/* Yo: moví el acceso al panel de administración al header (Navbar). Aquí dejo información estática. */}
           </div>
 
           {/* Columna 3: Case Status */}

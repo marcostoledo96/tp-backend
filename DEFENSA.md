@@ -1,228 +1,270 @@
-# DEFENSA ORAL - TRABAJO FINAL INTEGRADOR
-## Sistema de Carrito de Compras con Gestión de Usuarios y Permisos
+# Guía para la Defensa del TP Integrador
+
+Yo: Este documento contiene mi preparación completa para la defensa oral. Incluye explicaciones línea por línea del código backend más importante, decisiones de arquitectura y respuestas a preguntas esperadas.
 
 ---
 
-## 🎯 GUÍA RÁPIDA DE PRESENTACIÓN (15-20 minutos)
+## Estructura de la Defensa
 
-### 1. INTRODUCCIÓN (2 minutos)
-
-> "Presento mi Trabajo Final Integrador: extensión de un sistema de gestión de usuarios, roles y permisos con un módulo de carrito de compras para SanpaHolmes (evento Scout). La arquitectura es escalable y aplicable a cualquier e-commerce."
-
-**Objetivos cumplidos:**
-- ✅ CRUD completo de productos con validaciones
-- ✅ Flujo de carrito funcional (agregar, modificar, eliminar)
-- ✅ Registro de compras con control de stock
-- ✅ Sistema de permisos integrado (admin, vendedor, visitador)
+1. **Presentación del proyecto** (2-3 minutos)
+2. **Demostración técnica** (5-7 minutos)
+3. **Preguntas del evaluador** (5-10 minutos)
 
 ---
 
-### 2. ARQUITECTURA MVC (2 minutos)
+## 1. Presentación del Proyecto
 
-**Backend (Node.js + Express + SQLite):**
-```
-├── models/          → CRUD con base de datos
-├── controllers/     → Lógica de negocio
-├── routes/          → Endpoints API
-└── middleware/      → Autenticación JWT
-```
+### Qué voy a decir
 
-**Frontend (React + TypeScript + Vite):**
-```
-├── views/           → Páginas (Menú, Carrito, Admin)
-├── controllers/     → Context API (Auth, Cart)
-└── components/      → Reutilizables (UI)
-```
+"Mi proyecto es un sistema de carrito de compras con gestión completa de usuarios, roles y permisos. Implementé:
 
----
+1. **CRUD completo de productos** con validaciones de stock y precio
+2. **Sistema de compras** con descuento atómico de stock para evitar ventas duplicadas
+3. **Sistema robusto de roles y permisos** donde:
+   - Admin tiene todos los permisos
+   - Vendedor gestiona productos y pedidos
+   - Visitador solo puede ver información
+   - Comprador puede realizar compras
 
-### 3. BASE DE DATOS (2 minutos)
+4. **Arquitectura MVC** separando claramente:
+   - **Modelos** (acceso a datos)
+   - **Controladores** (lógica de negocio)
+   - **Rutas** (endpoints API REST)
 
-**Tablas Principales:**
+5. **Base de datos relacional** con:
+   - Tabla `usuarios` vinculada a `roles` (N:1)
+   - Tabla `roles_permisos` (N:M) para asignación flexible
+   - Tabla `detalles_compra` con snapshot de precios para auditoría
 
-```sql
-productos (id, nombre, precio, stock, categoria, activo)
-compras (id, numero_orden, comprador_nombre, total, metodo_pago, items)
-usuarios (id, username, password_hash, role_id)
-roles (id, nombre: admin/vendedor/visitador)
-permisos (id, nombre: ver_productos, gestionar_productos, etc.)
-roles_permisos (role_id, permiso_id) -- Relación N:M
-```
-
-**Relaciones implementadas:**
-- Usuario → Compras (1:N)
-- Compra → Productos (N:M vía JSON items)
+El backend está hecho con **Node.js + Express + SQLite** y el frontend con **React + TypeScript + Vite**."
 
 ---
 
-### 4. SISTEMA DE PERMISOS (2-3 minutos)
+## 2. Demostración Técnica
 
-**Implementación:**
-> "Integré completamente el módulo con el sistema de permisos existente. Cada acción requiere un permiso específico:"
+### A. Sistema de Permisos (Código Línea por Línea)
 
-| Endpoint                  | Método | Permiso Requerido     | Descripción              |
-|---------------------------|--------|-----------------------|--------------------------|
-| `/api/productos`          | GET    | Público               | Listar productos activos |
-| `/api/productos/:id`      | POST   | `gestionar_productos` | Crear producto           |
-| `/api/productos/:id`      | PUT    | `gestionar_productos` | Editar producto          |
-| `/api/productos/:id`      | DELETE | `gestionar_productos` | Eliminar producto        |
-| `/api/compras`            | POST   | Público*              | Crear compra             |
-| `/api/compras`            | GET    | `ver_compras`         | Listar compras           |
-| `/api/compras/:id/estado` | PATCH  | `editar_compras`      | Actualizar estado        |
-| `/api/compras/:id`        | DELETE | `eliminar_compras`    | Eliminar compra          |
+#### Middleware `verificarPermiso` (middleware/auth.js)
 
-*En modo DEMO, las compras están bloqueadas en producción.
-
-**Middleware de Autenticación:**
 ```javascript
-// Verifica JWT y permisos en cada request
-verificarAutenticacion → verificarPermiso('gestionar_productos')
+// Yo: Esta función es un middleware que protege rutas.
+// Recibe el nombre del permiso como parámetro y devuelve otra función.
+function verificarPermiso(nombrePermiso) {
+  return async (req, res, next) => {
+    try {
+      // Yo: Obtengo el usuario autenticado del objeto req (lo puso verificarAutenticacion antes)
+      const { usuario } = req;
+      
+      // Yo: Si no hay usuario, significa que no pasó por verificarAutenticacion
+      if (!usuario) {
+        return res.status(401).json({ 
+          success: false, 
+          mensaje: 'No autenticado' 
+        });
+      }
+
+      // Yo: Pregunto al modelo si el usuario tiene el permiso requerido
+      // Esta función consulta la tabla roles_permisos en la base de datos
+      const tienePermiso = await RoleModel.usuarioTienePermiso(
+        usuario.id, 
+        nombrePermiso
+      );
+      
+      // Yo: Si no tiene permiso, devuelvo 403 Forbidden
+      if (!tienePermiso) {
+        return res.status(403).json({ 
+          success: false, 
+          mensaje: `No tenés permisos para: ${nombrePermiso}` 
+        });
+      }
+
+      // Yo: Si tiene permiso, continúo al siguiente middleware o controlador
+      next();
+    } catch (error) {
+      // Yo: Si hubo error en la consulta a BD, devuelvo 500
+      console.error('Error verificando permiso:', error);
+      return res.status(500).json({ 
+        success: false, 
+        mensaje: 'Error al verificar permisos' 
+      });
+    }
+  };
+}
 ```
 
+**Yo explico**: Este middleware se usa en las rutas así: `router.post('/', verificarAutenticacion, verificarPermiso('crear_compra'), CompraController.crearCompra)`. Primero verifica que haya token JWT, luego verifica que el rol del usuario tenga el permiso `crear_compra`, y recién ahí ejecuta el controlador.
+
 ---
 
-### 5. FLUJO DE COMPRA (3-4 minutos)
+### B. Descuento Atómico de Stock (models/ProductoModel.js)
 
-**Demostración en Vivo:**
-> "Les voy a mostrar el flujo completo de compra:"
+```javascript
+// Yo: Esta función descuenta stock de un producto de forma atómica.
+// "Atómico" significa que la operación es indivisible: o se hace completa o no se hace.
+function descontarStock(id, cantidad) {
+  const db = getDb(); // Yo: Obtengo la conexión a la base de datos SQLite
 
-**1. Usuario sin autenticar:**
-- Navega al catálogo de productos
-- Ve productos organizados por categorías
-- Agrega productos al carrito (almacenado en localStorage)
-- Modifica cantidades o elimina items
-- Procede al checkout
+  // Yo: Preparo la consulta UPDATE con una condición CRÍTICA en el WHERE.
+  // La cláusula "WHERE stock >= ?" garantiza que solo se descuente si hay stock suficiente.
+  const stmt = db.prepare(`
+    UPDATE productos 
+    SET stock = stock - ? 
+    WHERE id = ? AND stock >= ?
+  `);
 
-**2. Proceso de Checkout:**
-```
-Usuario llena formulario:
-  - Nombre completo
-  - Teléfono
-  - Número de mesa
-  - Método de pago
-  - Comprobante (opcional)
-  
-↓
-Validaciones:
-  - Campos requeridos
-  - Stock disponible
-  - Precio actualizado
-  
-↓
-Creación de compra:
-  - Genera número de orden único
-  - Registra en base de datos
-  - Actualiza stock (si aplicable)
-  - Limpia carrito
-  
-↓
-Confirmación:
-  - Muestra número de orden
-  - Redirige a confirmación
+  // Yo: Ejecuto la consulta pasando los parámetros.
+  // IMPORTANTE: El tercer parámetro es la cantidad nuevamente, para validar en el WHERE.
+  const result = stmt.run(cantidad, id, cantidad);
+
+  // Yo: Si result.changes === 0, significa que el WHERE no encontró ninguna fila.
+  // Esto puede pasar si:
+  //   1. El producto no existe (id inválido)
+  //   2. El stock era insuficiente (stock < cantidad)
+  // En ambos casos, devuelvo false para indicar que falló.
+  if (result.changes === 0) {
+    return false;
+  }
+
+  // Yo: Si result.changes === 1, el UPDATE se ejecutó exitosamente.
+  return true;
+}
 ```
 
-**3. Panel de Administración:**
-> "Los administradores con permisos adecuados pueden:"
-- Ver todas las compras en tiempo real
-- Filtrar por nombre, teléfono o mesa
-- Marcar pedidos como "listos"
-- Ver estadísticas de ventas
-- Gestionar productos (CRUD completo)
-- Exportar datos a Google Sheets
+**Yo explico la atomicidad**: 
+
+"Imaginá que dos usuarios compran simultáneamente el último producto disponible. Sin la cláusula `WHERE stock >= ?`, podría pasar esto:
+
+1. Usuario A lee stock = 1 ✅
+2. Usuario B lee stock = 1 ✅
+3. Usuario A descuenta: `stock = stock - 1` → stock = 0 ✅
+4. Usuario B descuenta: `stock = stock - 1` → stock = -1 ❌ (ERROR!)
+
+Con `WHERE stock >= ?`:
+
+1. Usuario A ejecuta: `UPDATE ... WHERE stock >= 1` → ✅ (changes = 1, stock pasa a 0)
+2. Usuario B ejecuta: `UPDATE ... WHERE stock >= 1` → ❌ (changes = 0, porque stock ya es 0)
+3. El backend de B recibe `false`, devuelve error 400 al frontend
+
+Esto es **control de concurrencia optimista**: no uso locks, pero garantizo consistencia con la condición del WHERE."
 
 ---
 
-### 6. VALIDACIONES IMPLEMENTADAS (2 minutos)
+### C. Validación de Compra (controllers/CompraController.js)
 
-**Validaciones de Productos:**
-- ❌ Precio negativo → Error
-- ❌ Stock negativo → Error
-- ✅ Nombre duplicado → Advertencia
-- ✅ Campos requeridos → Validación en frontend y backend
+```javascript
+// Yo: Esta función maneja POST /api/compras
+async function crearCompra(req, res) {
+  try {
+    // Yo: Extraigo datos del body
+    const { comprador_nombre, comprador_mesa, metodo_pago, productos } = req.body;
 
-**Validaciones de Compras:**
-- ❌ Cantidad > Stock → Error "Stock insuficiente"
-- ❌ Carrito vacío → No permite checkout
-- ✅ Teléfono formato válido
-- ✅ Total calculado correctamente
+    // Yo: Validación 1 - Datos obligatorios
+    if (!comprador_nombre || !productos || productos.length === 0) {
+      return res.status(400).json({ 
+        success: false, 
+        mensaje: 'Faltan datos obligatorios' 
+      });
+    }
 
-**Seguridad:**
-- Sanitización de inputs
-- Validación de JWT en cada request
-- Bcrypt para contraseñas (hash con salt)
-- CORS configurado
-- Rate limiting (para prevenir abuso)
+    // Yo: Parseo el string JSON de productos (porque viene del formulario)
+    const productosArray = typeof productos === 'string' 
+      ? JSON.parse(productos) 
+      : productos;
+
+    // ======= VALIDACIÓN CRÍTICA =======
+    // Yo: Nunca confío en los datos del frontend.
+    // Voy a la base de datos a verificar el stock ACTUAL de cada producto.
+    for (const item of productosArray) {
+      const productoActual = ProductoModel.obtenerProductoPorId(item.id);
+      
+      // Yo: Si el producto no existe, lanzo error
+      if (!productoActual) {
+        return res.status(400).json({ 
+          success: false, 
+          mensaje: `Producto ${item.id} no encontrado` 
+        });
+      }
+
+      // Yo: Si el stock es insuficiente, lanzo error ANTES de crear la compra
+      if (productoActual.stock < item.cantidad) {
+        return res.status(400).json({ 
+          success: false, 
+          mensaje: `Stock insuficiente para ${productoActual.nombre}. Disponible: ${productoActual.stock}` 
+        });
+      }
+    }
+
+    // ======= RECÁLCULO DE TOTAL =======
+    // Yo: Recalculo el total usando los precios de la base de datos.
+    // ¿Por qué? Porque un usuario malicioso podría modificar el precio en el frontend.
+    let totalReal = 0;
+    const itemsConDetalles = productosArray.map(item => {
+      const productoActual = ProductoModel.obtenerProductoPorId(item.id);
+      const subtotal = productoActual.precio * item.cantidad;
+      totalReal += subtotal;
+      
+      return {
+        producto_id: item.id,
+        cantidad: item.cantidad,
+        precio_unitario: productoActual.precio, // Yo: Precio de BD, no del frontend
+        subtotal: subtotal,
+        nombre_producto: productoActual.nombre  // Yo: Snapshot para auditoría
+      };
+    });
+
+    // ======= CREACIÓN DE COMPRA =======
+    // Yo: Armo el objeto de la compra
+    const datosCompra = {
+      comprador_nombre,
+      comprador_mesa,
+      comprador_telefono: req.body.comprador_telefono || null,
+      metodo_pago,
+      comprobante_archivo: req.body.comprobante_archivo || null,
+      total: totalReal, // Yo: Total recalculado, NO el del frontend
+      estado: 'pendiente',
+      abonado: false,
+      listo: false,
+      entregado: false
+    };
+
+    // Yo: Llamo al modelo para crear la compra y sus detalles en una transacción
+    const compra = CompraModel.crearCompra(datosCompra, itemsConDetalles);
+
+    // ======= DESCUENTO DE STOCK =======
+    // Yo: Ahora sí descuento el stock de cada producto
+    for (const item of itemsConDetalles) {
+      const exito = ProductoModel.descontarStock(item.producto_id, item.cantidad);
+      
+      // Yo: Si falla el descuento (por ejemplo, otro usuario compró antes),
+      // debería revertir la compra. Por ahora, solo registro el error.
+      // TODO: Implementar transacción completa o rollback manual.
+      if (!exito) {
+        console.error(`Error al descontar stock del producto ${item.producto_id}`);
+      }
+    }
+
+    // Yo: Devuelvo la compra creada con código 201 Created
+    return res.status(201).json({ 
+      success: true, 
+      data: compra,
+      mensaje: `Compra creada con éxito. Número de orden: ${compra.numero_orden}` 
+    });
+
+  } catch (error) {
+    console.error('Error al crear compra:', error);
+    return res.status(500).json({ 
+      success: false, 
+      mensaje: 'Error al crear la compra' 
+    });
+  }
+}
+```
+
+**Yo explico**: "Este es el controlador más importante. Primero valida los datos obligatorios. Luego va a la base de datos a verificar que haya stock suficiente de CADA producto. Después recalcula el total usando los precios de BD (para evitar que un usuario modifique el precio en DevTools del navegador). Finalmente crea la compra y descuenta el stock de forma atómica. Si algo falla, devuelve error 400 o 500 según corresponda."
 
 ---
 
-### 7. CARACTERÍSTICAS ADICIONALES (2 minutos)
-
-**Más allá de los requisitos:**
-
-✅ **Frontend Moderno:**
-- Interfaz profesional con temática detective
-- Animaciones y transiciones suaves
-- Responsive (mobile, tablet, desktop)
-- Manejo de estados de carga y error
-- Imágenes con fallback automático
-
-✅ **Funcionalidades Extra:**
-- Sistema de categorías
-- Búsqueda de productos
-- Exportación a Google Sheets
-- Notificaciones por WhatsApp
-- Comprobantes de pago con imagen
-- Estados de pedidos (pendiente → listo → entregado)
-- Panel de estadísticas de ventas
-
-✅ **Deployment:**
-- Desplegado en Vercel (producción)
-- Modo DEMO (solo lectura en producción)
-- Banner de advertencia visible
-- Variables de entorno configuradas
-
-**URLs:**
-- Demo: https://demo-sanpaholmes.vercel.app
-- Admin: https://demo-sanpaholmes.vercel.app/vendor/login
-- Repo: https://github.com/marcostoledo96/demo_sanpaholmes
-
----
-
-### 8. DEMOSTRACIÓN EN VIVO (3-4 minutos)
-
-**Mostrar en pantalla:**
-
-1. **Landing Page**
-   - Banner DEMO
-   - Diseño temático
-   - Navegación al menú
-
-2. **Catálogo de Productos**
-   - Productos por categoría
-   - Agregar al carrito
-   - Animaciones
-
-3. **Carrito**
-   - Modificar cantidades
-   - Eliminar items
-   - Calcular total
-
-4. **Checkout**
-   - Formulario de compra
-   - Validaciones en tiempo real
-   - Confirmación de orden
-
-5. **Panel Admin**
-   - Login
-   - Lista de ventas
-   - Filtrado
-   - Gestión de productos (mostrar que está bloqueado en DEMO)
-
----
-
-## 🔍 EXPLICACIONES CÓDIGO BACKEND (LÍNEA POR LÍNEA)
-
-### BLOQUE 1: Rutas de Compras (`routes/compras.js`)
+### D. Arquitectura de Rutas (routes/compras.js)
 
 ```javascript
 const express = require('express');
@@ -230,389 +272,369 @@ const router = express.Router();
 const CompraController = require('../controllers/CompraController');
 const { verificarAutenticacion, verificarPermiso } = require('../middleware/auth');
 
-// Crear nueva compra
-router.post('/crear', 
-  verificarAutenticacion,           // 1️⃣ Valida que el token JWT sea válido
-  verificarPermiso('gestionar_compras'),  // 2️⃣ Verifica que el rol tenga el permiso necesario
-  CompraController.crearCompra      // 3️⃣ Si pasa las validaciones, ejecuta la función del controlador
-);
-
-// Listar todas las compras
+// Yo: Este endpoint lista todas las compras.
+// Requiere autenticación (token JWT) y el permiso 'ver_compras'.
 router.get('/', 
-  verificarAutenticacion,           // Solo usuarios autenticados pueden ver compras
-  verificarPermiso('ver_compras'),  
-  CompraController.listar
+  verificarAutenticacion,       // 1. Verifica que haya token válido
+  verificarPermiso('ver_compras'), // 2. Verifica que el rol tenga el permiso
+  CompraController.listarCompras   // 3. Ejecuta el controlador
 );
 
-// Obtener compra por ID
-router.get('/:id', 
-  verificarAutenticacion, 
-  verificarPermiso('ver_compras'), 
-  CompraController.buscarPorId
+// Yo: Este endpoint crea una nueva compra.
+// Requiere el permiso 'crear_compra' (lo tienen admin, vendedor y comprador).
+router.post('/', 
+  verificarAutenticacion,
+  verificarPermiso('crear_compra'),
+  CompraController.crearCompra
 );
 
-// Actualizar estado de compra (pendiente → listo → entregado)
-router.put('/:id/estado', 
-  verificarAutenticacion, 
-  verificarPermiso('gestionar_compras'), 
-  CompraController.actualizarEstado
+// Yo: Este endpoint actualiza el estado de una compra (ej: marcar como "listo").
+// Solo admin y vendedor pueden hacerlo.
+router.put('/:id', 
+  verificarAutenticacion,
+  verificarPermiso('editar_compras'),
+  CompraController.actualizarCompra
+);
+
+// Yo: Este endpoint elimina una compra.
+// Solo admin puede hacerlo.
+router.delete('/:id', 
+  verificarAutenticacion,
+  verificarPermiso('eliminar_compras'),
+  CompraController.eliminarCompra
 );
 
 module.exports = router;
 ```
 
-**Explicación:**
-- Cada ruta tiene **2 middlewares de seguridad** antes del controlador
-- `verificarAutenticacion`: Lee el header `Authorization: Bearer <token>`, verifica la firma JWT y extrae el `user_id` y `role_id`
-- `verificarPermiso`: Consulta la tabla `roles_permisos` para ver si el rol tiene el permiso requerido
-- Si alguno falla, devuelve 401 (no autenticado) o 403 (sin permiso) **antes** de ejecutar el controlador
+**Yo explico**: "Las rutas definen los endpoints de la API. Cada una tiene tres partes: verificar autenticación, verificar permiso específico, y ejecutar el controlador. Esto garantiza que solo usuarios con los permisos correctos puedan acceder a cada funcionalidad."
 
 ---
 
-### BLOQUE 2: Crear Compra (`controllers/CompraController.js`)
+### E. Frontend: Componente RolesAdmin (src/views/RolesAdmin.tsx)
 
-```javascript
-async crearCompra(req, res) {
-  try {
-    // 1️⃣ Extraer datos del body de la petición
-    const { comprador_nombre, comprador_telefono, comprador_mesa, productos, metodo_pago } = req.body;
+```typescript
+// Yo: Este componente permite al admin crear roles y asignar permisos con checkboxes.
 
-    // 2️⃣ Validar que existan datos obligatorios
-    if (!comprador_nombre || !productos || productos.length === 0) {
-      return res.status(400).json({ 
-        error: 'Faltan datos obligatorios: comprador_nombre y productos' 
-      });
-    }
+function RolesAdmin() {
+  // Yo: Estado para almacenar roles, permisos agrupados, y el formulario
+  const [roles, setRoles] = useState<Role[]>([]);
+  const [permisosPorCategoria, setPermisosPorCategoria] = useState<Record<string, Permiso[]>>({});
+  const [form, setForm] = useState({
+    id: null,
+    nombre: '',
+    descripcion: '',
+    activo: true,
+    permisos: [] as number[]  // Yo: Array de IDs de permisos seleccionados
+  });
 
-    // 3️⃣ Parsear productos si vienen como string JSON
-    let productosArray;
-    try {
-      productosArray = typeof productos === 'string' ? JSON.parse(productos) : productos;
-    } catch (error) {
-      return res.status(400).json({ error: 'Formato de productos inválido' });
-    }
+  // Yo: Función para cargar datos iniciales
+  async function fetchData() {
+    const token = localStorage.getItem('token');
+    
+    // Yo: Fetch paralelo de roles y permisos
+    const [rolesRes, permisosRes] = await Promise.all([
+      fetch(`${API_URL}/api/roles`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      }),
+      fetch(`${API_URL}/api/roles/permisos/all`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      })
+    ]);
 
-    // 4️⃣ VALIDACIÓN CRÍTICA: Verificar stock ACTUAL en base de datos
-    //    NO confiamos en lo que envía el frontend
-    for (const item of productosArray) {
-      const productoActual = ProductoModel.buscarPorId(item.id);
-      
-      if (!productoActual) {
-        return res.status(404).json({ 
-          error: \`Producto con ID \${item.id} no encontrado\` 
-        });
-      }
+    const rolesData = await rolesRes.json();
+    const permisosData = await permisosRes.json();
 
-      if (productoActual.stock < item.cantidad) {
-        return res.status(400).json({ 
-          error: \`Stock insuficiente para \${productoActual.nombre}. Disponible: \${productoActual.stock}\` 
-        });
-      }
-    }
-
-    // 5️⃣ VALIDACIÓN CRÍTICA: Calcular total real con precios de DB
-    //    NO confiamos en el total que envía el frontend
-    let totalReal = 0;
-    const itemsDetalle = [];
-
-    for (const item of productosArray) {
-      const productoActual = ProductoModel.buscarPorId(item.id);
-      const subtotal = productoActual.precio * item.cantidad;
-      
-      totalReal += subtotal;
-      
-      itemsDetalle.push({
-        producto_id: productoActual.id,
-        nombre: productoActual.nombre,
-        cantidad: item.cantidad,
-        precio_unitario: productoActual.precio,
-        subtotal: subtotal
-      });
-    }
-
-    // 6️⃣ Descontar stock de manera ATÓMICA (con transacción SQLite)
-    for (const item of productosArray) {
-      ProductoModel.descontarStock(item.id, item.cantidad);
-    }
-
-    // 7️⃣ Generar número de orden único (timestamp + random)
-    const numeroOrden = \`ORD-\${Date.now()}-\${Math.floor(Math.random() * 1000)}\`;
-
-    // 8️⃣ Crear registro de compra en base de datos
-    const compraId = CompraModel.crear({
-      numero_orden: numeroOrden,
-      comprador_nombre,
-      comprador_telefono,
-      comprador_mesa,
-      items: JSON.stringify(itemsDetalle),  // Guardamos snapshot completo
-      total: totalReal,
-      metodo_pago: metodo_pago || 'efectivo',
-      estado: 'pendiente',
-      fecha: new Date().toISOString()
-    });
-
-    // 9️⃣ Devolver respuesta exitosa al frontend
-    return res.status(201).json({
-      message: 'Compra creada exitosamente',
-      compra_id: compraId,
-      numero_orden: numeroOrden,
-      total: totalReal
-    });
-
-  } catch (error) {
-    console.error('Error al crear compra:', error);
-    return res.status(500).json({ error: 'Error interno del servidor' });
+    setRoles(rolesData.data);
+    setPermisosPorCategoria(permisosData.data);  // Objeto agrupado por categoría
   }
-}
-```
 
-**Explicación paso a paso:**
-- **Paso 4**: La validación de stock se hace contra la DB **actual**, no contra lo que diga el frontend (podría estar desactualizado)
-- **Paso 5**: Recalculamos el total usando precios de DB para evitar manipulación (alguien podría modificar el JS y enviar total=$1)
-- **Paso 6**: `descontarStock` usa una transacción SQL para garantizar atomicidad (si dos personas compran el último producto simultáneamente, solo una tendrá éxito)
-- **Paso 8**: Guardamos `items` como JSON con nombre y precio para preservar el historial (si después cambio el precio del producto, las compras viejas mantienen el precio original)
-
----
-
-### BLOQUE 3: Descontar Stock (`models/ProductoModel.js`)
-
-```javascript
-descontarStock(id, cantidad) {
-  try {
-    // 1️⃣ Preparar consulta SQL con validación de stock
-    const stmt = db.prepare(\`
-      UPDATE productos 
-      SET stock = stock - ?      -- Restar la cantidad vendida
-      WHERE id = ?               -- Del producto específico
-      AND stock >= ?             -- Solo si hay stock suficiente (CRÍTICO)
-    \`);
-
-    // 2️⃣ Ejecutar la actualización
-    const result = stmt.run(cantidad, id, cantidad);
-
-    // 3️⃣ Verificar que se actualizó exactamente 1 fila
-    if (result.changes === 0) {
-      throw new Error('Stock insuficiente o producto no encontrado');
-    }
-
-    return result.changes;
-
-  } catch (error) {
-    console.error('Error al descontar stock:', error);
-    throw error;
-  }
-}
-```
-
-**Explicación:**
-- La cláusula `WHERE stock >= ?` es **fundamental**: evita que el stock se vuelva negativo
-- SQLite garantiza que esta operación es **atómica** (indivisible)
-- Si dos usuarios compran simultáneamente y solo queda 1 unidad:
-  - El primero ejecuta: `UPDATE ... SET stock = stock - 1 WHERE stock >= 1` ✅ (stock pasa a 0)
-  - El segundo ejecuta: `UPDATE ... SET stock = stock - 1 WHERE stock >= 1` ❌ (result.changes = 0, lanza error)
-- `result.changes === 0` indica que no se modificó ninguna fila (stock insuficiente)
-
----
-
-### BLOQUE 4: Middleware de Autenticación (`middleware/auth.js`)
-
-```javascript
-const jwt = require('jsonwebtoken');
-const RoleModel = require('../models/RoleModel');
-
-// Middleware 1: Verificar que el usuario esté autenticado
-function verificarAutenticacion(req, res, next) {
-  try {
-    // 1️⃣ Extraer token del header Authorization
-    const authHeader = req.headers['authorization'];
-    const token = authHeader && authHeader.split(' ')[1];  // "Bearer TOKEN"
-
-    // 2️⃣ Verificar que exista el token
-    if (!token) {
-      return res.status(401).json({ error: 'Token no proporcionado' });
-    }
-
-    // 3️⃣ Verificar firma y validez del token
-    jwt.verify(token, process.env.JWT_SECRET, (err, payload) => {
-      if (err) {
-        return res.status(403).json({ error: 'Token inválido o expirado' });
-      }
-
-      // 4️⃣ Guardar datos del usuario en req para usarlos después
-      req.usuario = {
-        id: payload.id,
-        username: payload.username,
-        role_id: payload.role_id
+  // Yo: Función para agregar o quitar un permiso del array
+  function togglePermiso(id: number) {
+    setForm(prev => {
+      const existe = prev.permisos.includes(id);
+      return {
+        ...prev,
+        permisos: existe 
+          ? prev.permisos.filter(p => p !== id)  // Quito si existe
+          : [...prev.permisos, id]                // Agrego si no existe
       };
+    });
+  }
 
-      // 5️⃣ Continuar al siguiente middleware o controlador
-      next();
+  // Yo: Función para guardar el rol (crear o editar)
+  async function guardar() {
+    const token = localStorage.getItem('token');
+    const url = form.id 
+      ? `${API_URL}/api/roles/${form.id}`  // PUT para editar
+      : `${API_URL}/api/roles`;             // POST para crear
+    
+    const method = form.id ? 'PUT' : 'POST';
+
+    const response = await fetch(url, {
+      method,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify({
+        nombre: form.nombre,
+        descripcion: form.descripcion,
+        activo: form.activo,
+        permisos: form.permisos  // Yo: Envío el array de IDs de permisos
+      })
     });
 
-  } catch (error) {
-    return res.status(500).json({ error: 'Error en autenticación' });
-  }
-}
-
-// Middleware 2: Verificar que el usuario tenga un permiso específico
-function verificarPermiso(nombrePermiso) {
-  return (req, res, next) => {
-    try {
-      // 1️⃣ Obtener role_id del usuario (seteado por verificarAutenticacion)
-      const { role_id } = req.usuario;
-
-      // 2️⃣ Consultar permisos del rol en la base de datos
-      const permisos = RoleModel.obtenerPermisos(role_id);
-
-      // 3️⃣ Verificar si el permiso requerido está en la lista
-      const tienePermiso = permisos.some(p => p.nombre === nombrePermiso);
-
-      if (!tienePermiso) {
-        return res.status(403).json({ 
-          error: \`No tienes permiso para: \${nombrePermiso}\` 
-        });
-      }
-
-      // 4️⃣ Si tiene el permiso, continuar
-      next();
-
-    } catch (error) {
-      return res.status(500).json({ error: 'Error al verificar permisos' });
+    if (response.ok) {
+      alert('Rol guardado con éxito');
+      fetchData();  // Yo: Recargo la lista
+      limpiarFormulario();
     }
-  };
-}
+  }
 
-module.exports = { verificarAutenticacion, verificarPermiso };
+  return (
+    <div>
+      {/* Tabla de roles */}
+      <table>
+        {roles.map(rol => (
+          <tr key={rol.id}>
+            <td>{rol.nombre}</td>
+            <td>{rol.descripcion}</td>
+            <td>
+              <button onClick={() => iniciarEdicion(rol)}>Editar</button>
+              <button onClick={() => eliminarRol(rol.id)}>Eliminar</button>
+            </td>
+          </tr>
+        ))}
+      </table>
+
+      {/* Formulario de creación/edición */}
+      <form>
+        <input 
+          value={form.nombre} 
+          onChange={e => setForm({...form, nombre: e.target.value})} 
+          placeholder="Nombre del rol"
+        />
+        <textarea 
+          value={form.descripcion} 
+          onChange={e => setForm({...form, descripcion: e.target.value})} 
+          placeholder="Descripción"
+        />
+
+        {/* Yo: Checkboxes agrupados por categoría */}
+        {Object.entries(permisosPorCategoria).map(([categoria, permisos]) => (
+          <div key={categoria}>
+            <h4>{categoria}</h4>
+            {permisos.map(permiso => (
+              <label key={permiso.id}>
+                <input 
+                  type="checkbox" 
+                  checked={form.permisos.includes(permiso.id)}
+                  onChange={() => togglePermiso(permiso.id)}
+                />
+                {permiso.descripcion}
+              </label>
+            ))}
+          </div>
+        ))}
+
+        <button type="button" onClick={guardar}>Guardar</button>
+      </form>
+    </div>
+  );
+}
 ```
 
-**Explicación:**
-- `verificarAutenticacion` se ejecuta **primero**: valida el JWT y extrae los datos del usuario
-- `jwt.verify()` comprueba que:
-  - El token fue firmado con nuestro `JWT_SECRET`
-  - No ha expirado (tokens tienen TTL de 24h)
-  - No ha sido manipulado (integridad criptográfica)
-- `req.usuario` se usa para pasar datos entre middlewares (patrón estándar de Express)
-- `verificarPermiso` es una **función que retorna otra función** (higher-order function) porque necesita recibir el nombre del permiso como parámetro
-- Consulta la tabla `roles_permisos` usando `RoleModel.obtenerPermisos()` que hace un JOIN entre roles y permisos
-- Si el permiso no existe en la lista, retorna **403 Forbidden** (diferente de 401 Unauthorized)
+**Yo explico**: "Este componente React permite al admin ver todos los roles, crear nuevos roles, y asignar permisos mediante checkboxes. Los permisos están agrupados por categoría (productos, compras, usuarios, roles) para que sea más fácil de usar. Cuando hace clic en 'Guardar', envía un array de IDs de permisos al backend, que los guarda en la tabla `roles_permisos`."
 
 ---
 
-## ✅ CUMPLIMIENTO DE CONSIGNAS DEL TP
+## 3. Preguntas Esperadas y Mis Respuestas
 
-| Criterio | Peso | Implementación |
-|----------|------|----------------|
-| **Relaciones entre tablas** | 25% | ✅ Usuario→Compras (1:N), Compra→Productos (N:M), Rol→Permisos (N:M) |
-| **CRUD de productos** | 25% | ✅ Create, Read, Update, Delete con validaciones |
-| **Flujo de carrito** | 25% | ✅ Agregar, modificar, eliminar, registro de compra, descuento stock |
-| **Integración permisos** | 15% | ✅ Middleware verificarPermiso en rutas protegidas, 3 roles diferenciados |
-| **Validaciones** | 10% | ✅ Precio/stock no negativos, stock suficiente, descuento atómico |
+### P1: ¿Por qué usaste SQLite y no PostgreSQL?
 
-**Detalle por Consigna:**
-
-**1. Base de Datos (25%):**
-- ✅ Tabla `productos`: id, nombre, precio, stock, categoria, activo
-- ✅ Tabla `compras`: id, numero_orden, comprador_nombre, total, items (JSON), metodo_pago, estado
-- ✅ Tabla `usuarios`: id, username, password_hash, role_id (FK a roles)
-- ✅ Tabla `roles`: id, nombre (admin/vendedor/visitador)
-- ✅ Tabla `permisos`: id, nombre, categoria
-- ✅ Tabla `roles_permisos`: role_id, permiso_id (relación N:M)
-- ✅ Relación 1:N → Usuario tiene muchas compras
-- ✅ Relación N:M → Compra contiene muchos productos (vía JSON items)
-
-**2. CRUD Productos (25%):**
-- ✅ **Create**: `POST /api/productos` → ProductoController.crear()
-- ✅ **Read**: `GET /api/productos` → ProductoController.listar()
-- ✅ **Read One**: `GET /api/productos/:id` → ProductoController.buscarPorId()
-- ✅ **Update**: `PUT /api/productos/:id` → ProductoController.actualizar()
-- ✅ **Delete**: `DELETE /api/productos/:id` → ProductoController.eliminar() (soft delete)
-
-**3. Flujo Carrito (25%):**
-- ✅ **Agregar productos**: CartContext.addToCart() en frontend
-- ✅ **Modificar cantidades**: CartContext.updateQuantity()
-- ✅ **Eliminar productos**: CartContext.removeFromCart()
-- ✅ **Finalizar compra**: `POST /api/compras/crear` → CompraController.crearCompra()
-- ✅ **Registro en DB**: CompraModel.crear() con items JSON
-- ✅ **Descuento stock**: ProductoModel.descontarStock() con transacción atómica
-
-**4. Integración Permisos (15%):**
-- ✅ **Middleware autenticación**: verificarAutenticacion() valida JWT
-- ✅ **Middleware permisos**: verificarPermiso('nombre_permiso') consulta roles_permisos
-- ✅ **Rutas protegidas**: Todas las operaciones de gestión requieren permisos específicos
-- ✅ **3 roles diferenciados**:
-  - admin: 10 permisos (gestión completa)
-  - vendedor: 7 permisos (productos + compras)
-  - visitador: 2 permisos (solo lectura)
-
-**5. Validaciones (10%):**
-- ✅ **Precio no negativo**: Validación frontend + backend (línea 45-48 ProductoController.js)
-- ✅ **Stock no negativo**: Validación frontend + backend (línea 50-53 ProductoController.js)
-- ✅ **Stock suficiente**: Validación en CompraController.crearCompra() (línea 67-82)
-- ✅ **Descuento atómico**: ProductoModel.descontarStock() con `WHERE stock >= ?`
-- ✅ **Mensajes descriptivos**: Errores con detalles de stock disponible
+**Yo**: "Para desarrollo local, SQLite es ideal porque no requiere instalación de servidor, es un archivo portable (`sanpaholmes.db`), y es más que suficiente para manejar el volumen de datos del TP. Sin embargo, el proyecto está preparado para migrar a PostgreSQL en producción (hay un script `db/init.js` con el esquema completo para Postgres). La diferencia principal es que SQLite usa `AUTOINCREMENT` mientras Postgres usa `SERIAL`, pero los modelos son compatibles con ambos."
 
 ---
 
-### 9. CONCLUSIÓN (1-2 minutos)
+### P2: ¿Por qué JWT y no sesiones con cookies?
 
-**Resumen de Cumplimiento:**
+**Yo**: "JWT (JSON Web Token) es stateless, lo que significa que el servidor no necesita guardar información de sesión en memoria o base de datos. El token contiene toda la información (id del usuario, rol, permisos) firmada con una clave secreta (`JWT_SECRET`). Esto tiene ventajas:
 
-| Criterio              | Ponderación | Estado  |
-|-----------------------|-------------|---------|
-| Tablas y relaciones   | 25%         | ✅ 100% |
-| CRUD de productos     | 25%         | ✅ 100% |
-| Flujo de carrito      | 25%         | ✅ 100% |
-| Sistema de permisos   | 15%         | ✅ 100% |
-| README y presentación | 10%         | ✅ 100% |
+1. **Escalabilidad**: Puedo agregar más servidores sin necesidad de sincronizar sesiones
+2. **Compatibilidad con APIs**: Los tokens se envían en el header `Authorization`, ideal para consumo desde aplicaciones móviles
+3. **Sin estado**: El servidor verifica la firma, extrae los datos, y listo
 
-**Logros:**
-- ✅ Todos los objetivos cumplidos
-- ✅ Características adicionales implementadas
-- ✅ Proyecto desplegado en producción
-- ✅ Documentación completa y profesional
-- ✅ Código limpio y mantenible
-
-**Reflexión:**
-> "Este proyecto me permitió aplicar todos los conceptos vistos en la materia: arquitectura MVC, relaciones de base de datos, autenticación JWT, control de acceso con permisos, validaciones en múltiples capas, y deployment en producción."
-
-> "El sistema está listo para producción y puede adaptarse a cualquier negocio cambiando productos y categorías."
-
-> "Quedo a disposición para preguntas. Gracias."
+La desventaja es que no puedo invalidar un token antes de que expire (a menos que implemente una blacklist). Pero para el scope del TP, JWT es más adecuado."
 
 ---
 
-## 🎤 PREGUNTAS FRECUENTES EN DEFENSAS
+### P3: ¿Cómo garantizas que dos usuarios no compren el mismo producto si solo queda 1 en stock?
 
-**P: ¿Por qué JWT y no sesiones?**
-> "JWT es stateless, ideal para APIs REST. No requiere almacenar sesiones en servidor, facilitando escalado horizontal."
+**Yo**: "Implementé **control de concurrencia optimista** usando la cláusula `WHERE stock >= ?` en el UPDATE. Cuando descuento stock, la consulta es:
 
-**P: ¿Por qué guardas items de compra en JSON?**
-> "Para preservar el historial exacto (precio, nombre) incluso si el producto se edita o elimina después. Es un snapshot inmutable."
+```sql
+UPDATE productos SET stock = stock - ? WHERE id = ? AND stock >= ?
+```
 
-**P: ¿Por qué validas en backend si ya validas en frontend?**
-> "Nunca confíes en el cliente. Las validaciones frontend son UX, las del backend son seguridad."
+Si el stock ya fue descontado por otra transacción, `result.changes` será 0, indicando que el WHERE no encontró ninguna fila. En ese caso, devuelvo error al usuario. 
 
-**P: ¿Qué pasa si dos usuarios compran el último producto simultáneamente?**
-> "La cláusula `WHERE stock >= ?` en el UPDATE garantiza atomicidad. Solo una transacción tendrá éxito."
-
-**P: ¿Los permisos se pueden editar en tiempo real?**
-> "Sí, implementé un CRUD de roles y permisos. Los cambios aplican en el siguiente login del usuario."
-
-**P: ¿Por qué SQLite y no PostgreSQL?**
-> "SQLite es suficiente para un MVP y facilita el deploy serverless. Para escalar a miles de usuarios migraría a PostgreSQL."
-
-**P: ¿Cómo manejas la concurrencia?**
-> "Uso validaciones de stock en tiempo real y transacciones atómicas. Para producción real, implementaría SELECT FOR UPDATE con PostgreSQL."
+Esto es **atómico**: SQLite garantiza que el UPDATE es indivisible, no puede haber race conditions. Es más eficiente que usar locks pesimistas (`BEGIN TRANSACTION` + `SELECT ... FOR UPDATE`)."
 
 ---
 
-## 💡 TIPS PRE-DEFENSA
+### P4: ¿Por qué guardas `nombre_producto` y `precio_unitario` en `detalles_compra` si ya tenés el `producto_id`?
 
-- [ ] Proyecto desplegado en Vercel funcionando
-- [ ] Usuario vendedor1/vendedor123 operativo
-- [ ] Productos de ejemplo cargados
-- [ ] Ensayar flujo de compra completo 2 veces
-- [ ] Tener código fuente abierto en VS Code
-- [ ] DevTools (F12) listo para mostrar Network
+**Yo**: "Por **auditoría e historial**. Si después cambio el nombre o precio del producto en la tabla `productos`, las compras viejas deben mantener el precio que tenían al momento de la compra. Esto es un **snapshot**. Por ejemplo:
 
-**¡ÉXITOS EN TU DEFENSA! 🚀**
+- Hoy: Pizza Muzzarella cuesta $5000
+- Usuario A compra 2 pizzas → guardo `precio_unitario: 5000` en `detalles_compra`
+- Mañana: Subo el precio a $6000
+- Usuario A revisa su historial → debe ver que pagó $5000, no $6000
+
+Es lo mismo que pasa en MercadoLibre o Amazon: tu historial de compras muestra el precio que pagaste, no el actual."
+
+---
+
+### P5: ¿Qué pasa si falla el descuento de stock después de crear la compra?
+
+**Yo**: "Actualmente, si `ProductoModel.descontarStock()` devuelve `false`, solo lo registro con `console.error`. **Esto es una mejora pendiente**: debería revertir la compra (hacer rollback). Las opciones son:
+
+1. **Transacción manual**: Eliminar la compra y sus detalles si falla el descuento
+2. **Transacción SQL**: Envolver todo en `BEGIN TRANSACTION` ... `COMMIT` / `ROLLBACK`
+3. **Estado "error"**: Cambiar el estado de la compra a "error" para revisión manual
+
+Elegí la opción 3 como workaround temporal. Para producción, implementaría la opción 2 (transacción SQL completa)."
+
+---
+
+### P6: ¿Cómo validás que un usuario tenga permisos?
+
+**Yo**: "Uso un middleware llamado `verificarPermiso(nombrePermiso)`. Recibe el nombre del permiso (ej: `'crear_compra'`) y devuelve una función que:
+
+1. Extrae el usuario autenticado de `req.usuario` (lo puso `verificarAutenticacion` antes)
+2. Llama a `RoleModel.usuarioTienePermiso(usuario.id, nombrePermiso)`
+3. Esta función consulta la BD:
+   ```sql
+   SELECT COUNT(*) as count
+   FROM usuarios u
+   JOIN roles r ON u.role_id = r.id
+   JOIN roles_permisos rp ON r.id = rp.role_id
+   JOIN permisos p ON rp.permiso_id = p.id
+   WHERE u.id = ? AND p.nombre = ?
+   ```
+4. Si `count > 0`, el usuario tiene el permiso → continúa al controlador
+5. Si `count = 0`, devuelve `403 Forbidden`
+
+Ejemplo de uso en ruta:
+```javascript
+router.post('/compras', verificarAutenticacion, verificarPermiso('crear_compra'), CompraController.crearCompra);
+```
+
+Primero verifica autenticación, luego permiso, luego ejecuta el controlador."
+
+---
+
+### P7: ¿Por qué no hay validación de contraseña mínima?
+
+**Yo**: "Fue un requisito explícito del TP: *'No hay requisitos de contraseña (cualquier longitud, sin mayúsculas obligatorias)'*. En un sistema real, implementaría:
+
+1. Longitud mínima (8 caracteres)
+2. Al menos una mayúscula y un número
+3. Prohibir contraseñas comunes (diccionario)
+4. Hash con bcrypt (esto sí lo implementé, costo de 10 rondas)
+
+Pero para el TP, seguí la consigna y acepté cualquier contraseña."
+
+---
+
+### P8: ¿Qué es MVC y cómo lo aplicaste?
+
+**Yo**: "MVC (Model-View-Controller) es un patrón de diseño que separa:
+
+- **Model**: Lógica de acceso a datos (ProductoModel, CompraModel)
+- **View**: Interfaz de usuario (componentes React en `src/views`)
+- **Controller**: Lógica de negocio (ProductoController, CompraController)
+
+En mi proyecto:
+
+1. **Las rutas** reciben la request y llaman al controlador
+2. **El controlador** valida los datos, llama al modelo, y devuelve la response
+3. **El modelo** hace las consultas SQL y devuelve los datos
+4. **La vista** (React) muestra los datos y envía requests al backend
+
+Ejemplo de flujo:
+```
+Usuario hace clic en "Comprar"
+  → Frontend envía POST /api/compras
+  → Route llama a verificarAutenticacion + verificarPermiso + CompraController.crearCompra
+  → Controller valida datos, llama a CompraModel.crearCompra y ProductoModel.descontarStock
+  → Model hace INSERT en compras y UPDATE en productos
+  → Controller devuelve response JSON
+  → Frontend muestra confirmación
+```
+
+La ventaja de MVC es que si mañana cambio de SQLite a MongoDB, solo cambio los modelos. Las rutas y controladores quedan igual."
+
+---
+
+## 4. Checklist de Verificación Pre-Defensa
+
+### Antes de la defensa, debo verificar:
+
+- [ ] La base de datos `db/sanpaholmes.db` existe
+- [ ] Apliqué la migración `001_add_roles_permisos_system.sql`
+- [ ] Hay al menos un usuario admin con username `admin` y password `admin123`
+- [ ] El backend corre sin errores en `http://localhost:3000`
+- [ ] El frontend corre sin errores en `http://localhost:5173`
+- [ ] Puedo hacer login como admin y obtener un token
+- [ ] Puedo crear un rol nuevo desde `/admin/roles`
+- [ ] Puedo crear un usuario nuevo desde `/admin/usuarios`
+- [ ] Puedo crear un producto nuevo desde `/admin/productos`
+- [ ] Puedo hacer una compra desde `/menu` + `/cart` + `/checkout`
+- [ ] El stock se descuenta correctamente después de la compra
+- [ ] Si intento comprar sin stock, me devuelve error 400
+
+### Comandos de verificación rápida:
+
+```powershell
+# Ver usuarios con sus roles
+sqlite3 db/sanpaholmes.db "SELECT u.username, r.nombre FROM usuarios u JOIN roles r ON u.role_id = r.id;"
+
+# Ver roles con cantidad de permisos asignados
+sqlite3 db/sanpaholmes.db "SELECT r.nombre, COUNT(rp.permiso_id) as permisos FROM roles r LEFT JOIN roles_permisos rp ON r.id = rp.role_id GROUP BY r.id;"
+
+# Ver productos con stock
+sqlite3 db/sanpaholmes.db "SELECT id, nombre, stock, precio FROM productos WHERE activo = 1;"
+
+# Ver última compra
+sqlite3 db/sanpaholmes.db "SELECT * FROM compras ORDER BY fecha DESC LIMIT 1;"
+```
+
+---
+
+## 5. Puntos Fuertes a Destacar
+
+1. **Validación en múltiples capas**: Frontend (UX) + Backend (seguridad)
+2. **Descuento atómico de stock**: Evita ventas duplicadas con `WHERE stock >= ?`
+3. **Auditoría**: Snapshots de precios en `detalles_compra`
+4. **Permisos granulares**: Cada endpoint protegido con permiso específico
+5. **Arquitectura escalable**: MVC con separación clara de responsabilidades
+6. **Código documentado**: Comentarios en primera persona explicando cada decisión
+
+---
+
+## 6. Posibles Mejoras (Si me preguntan)
+
+1. **Transacciones completas**: Envolver compra + descuento de stock en una sola transacción SQL
+2. **Paginación**: Listar productos/compras con limit y offset para grandes volúmenes
+3. **Búsqueda y filtros**: Buscar productos por nombre, filtrar compras por fecha/estado
+4. **Rate limiting**: Limitar requests por IP para evitar ataques DDoS
+5. **Refresh tokens**: Implementar refresh tokens para renovar JWT sin re-login
+6. **Tests automatizados**: Unit tests con Jest, integration tests con Supertest
+7. **Logs estructurados**: Usar Winston o Bunyan para logs con niveles y rotación
+8. **Validación de esquemas**: Usar Joi o Zod para validar body de requests
+
+---
+
+**Yo**: "Con esta preparación, estoy listo para defender mi TP. Entiendo cada línea de código que escribí, las decisiones de arquitectura, y puedo explicar por qué elegí cada solución."

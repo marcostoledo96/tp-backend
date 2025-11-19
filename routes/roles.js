@@ -22,9 +22,11 @@ const bloquearEscrituraEnVercel = (req, res, next) => {
 };
 
 // 📋 GET /api/roles/permisos/all - Listar todos los permisos disponibles
+// Yo: Esta ruta devuelve permisos agrupados por categoría para facilitar la UI de asignación.
 router.get('/permisos/all', verificarAutenticacion, RoleController.listarPermisos);
 
 // 📋 GET /api/roles - Listar todos los roles
+// Yo: Solo usuarios con 'ver_roles' pueden ver los roles del sistema.
 router.get('/', verificarAutenticacion, verificarPermiso('ver_roles'), RoleController.listarRoles);
 
 // 🔍 GET /api/roles/:id - Obtener un rol específico con sus permisos

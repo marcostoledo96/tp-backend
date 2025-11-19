@@ -12,6 +12,7 @@ import { OrderConfirmation } from './views/OrderConfirmation';
 import { VendorLogin } from './views/VendorLogin';
 import { AdminPanelNew } from './views/AdminPanelNew';
 import { UsuariosAdmin } from './views/UsuariosAdmin';
+import { RolesAdmin } from './views/RolesAdmin';
 import { Toaster } from './views/ui/sonner';
 
 // Componente para proteger rutas que requieren autenticación
@@ -58,6 +59,14 @@ function AppContent() {
             />
             <Route 
               path="/vendor/roles" 
+              element={
+                <ProtectedRoute>
+                  <RolesAdmin />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/vendor/usuarios" 
               element={
                 <ProtectedRoute>
                   <UsuariosAdmin />

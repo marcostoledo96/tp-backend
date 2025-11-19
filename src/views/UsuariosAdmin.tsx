@@ -182,10 +182,7 @@ export function UsuariosAdmin() {
         return;
       }
 
-      if (formData.password.length < 6) {
-        alert('La contraseña debe tener al menos 6 caracteres');
-        return;
-      }
+      // Yo: removí la restricción de longitud mínima de contraseña (no se requieren requisitos)
     }
 
     if (editando && (!formData.username.trim() || !formData.nombre.trim() || !formData.role_id)) {
@@ -239,10 +236,7 @@ export function UsuariosAdmin() {
       return;
     }
 
-    if (formData.password.length < 6) {
-      alert('La contraseña debe tener al menos 6 caracteres');
-      return;
-    }
+    // Yo: removí la validación de longitud mínima en el cambio de contraseña
 
     try {
       const res = await fetch(`${API_URL}/api/usuarios/${cambiandoPassword}/password`, {
@@ -451,7 +445,7 @@ export function UsuariosAdmin() {
                     value={formData.password}
                     onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                     className="w-full px-4 py-3 bg-[#0a0a0a] border-2 border-[#fbbf24]/30 rounded-xl text-white focus:border-[#fbbf24] focus:outline-none pr-12"
-                    placeholder="Mínimo 6 caracteres"
+                    placeholder="Ingresá la nueva contraseña"
                   />
                   <button
                     type="button"
@@ -470,7 +464,7 @@ export function UsuariosAdmin() {
                   value={formData.password_confirm}
                   onChange={(e) => setFormData({ ...formData, password_confirm: e.target.value })}
                   className="w-full px-4 py-3 bg-[#0a0a0a] border-2 border-[#fbbf24]/30 rounded-xl text-white focus:border-[#fbbf24] focus:outline-none"
-                  placeholder="Confirmar contraseña"
+                  placeholder="Confirmá la contraseña"
                 />
               </div>
 
@@ -557,7 +551,7 @@ export function UsuariosAdmin() {
                         value={formData.password}
                         onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                         className="w-full px-4 py-3 bg-[#0a0a0a] border-2 border-[#fbbf24]/30 rounded-xl text-white focus:border-[#fbbf24] focus:outline-none pr-12"
-                        placeholder="Mínimo 6 caracteres"
+                          placeholder="Ingresá la contraseña del usuario"
                       />
                       <button
                         type="button"
@@ -576,7 +570,7 @@ export function UsuariosAdmin() {
                       value={formData.password_confirm}
                       onChange={(e) => setFormData({ ...formData, password_confirm: e.target.value })}
                       className="w-full px-4 py-3 bg-[#0a0a0a] border-2 border-[#fbbf24]/30 rounded-xl text-white focus:border-[#fbbf24] focus:outline-none"
-                      placeholder="Confirmar contraseña"
+                      placeholder="Confirmá la contraseña"
                     />
                   </div>
                 </>

@@ -63,6 +63,9 @@ async function crearCompra(req, res) {
     }
 
     // Validar stock de cada producto ANTES de procesar
+    // Yo: Esta es una validación CRÍTICA. Verifico contra la base de datos
+    // el stock ACTUAL de cada producto. No confío en lo que envía el frontend
+    // porque podría estar desactualizado o manipulado.
     for (const item of productosArray) {
       const { producto_id, cantidad } = item;
 
@@ -85,6 +88,9 @@ async function crearCompra(req, res) {
     }
 
     // Calcular el total
+    // Yo: Recalculo el total usando precios de la base de datos para evitar
+    // manipulación. Alguien podría modificar el JavaScript del cliente
+    // y enviar un total de $1 para todos los productos.
     let total = 0;
     const itemsConDetalles = productosArray.map(item => {
       const producto = ProductoModel.obtenerProductoPorId(item.producto_id);
@@ -122,6 +128,9 @@ async function crearCompra(req, res) {
     );
 
     // NUEVO: Descontar stock de cada producto después de crear la compra
+    // Yo: Descuento el stock de forma atómica usando ProductoModel.descontarStock()
+    // que tiene validación WHERE stock >= cantidad para evitar stocks negativos.
+    // Si dos personas compran simultáneamente el último producto, solo una tendrá éxito.
     try {
       for (const item of itemsConDetalles) {
         ProductoModel.descontarStock(item.producto_id, item.cantidad);

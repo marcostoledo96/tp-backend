@@ -79,10 +79,11 @@ export function VendorLogin() {
       <div className="relative z-10 w-full max-w-md mx-auto px-6">
         {/* Logo/Header */}
         <div className="text-center mb-10">
-          <div className="inline-block p-5 bg-gradient-to-br from-[#ef4444] to-[#dc2626] rounded-3xl mb-6 shadow-2xl shadow-[#ef4444]/50">
+          <div className="inline-block p-5 bg-gradient-to-br from-[#06b6d4] to-[#10b981] rounded-3xl mb-6 shadow-2xl shadow-[#06b6d4]/50">
             <Shield className="w-14 h-14 text-white" />
           </div>
-          <h1 className="text-white mb-3">Panel de Vendedores</h1>
+          {/* Yo: cambié el título a genérico para que sea el mismo inicio de sesión para todos los roles */}
+          <h1 className="text-white mb-3">Iniciar sesión</h1>
           <div className="inline-block bg-gradient-to-r from-[#fbbf24] to-[#f59e0b] text-black px-6 py-2 rounded-xl shadow-lg">
             <p className="uppercase tracking-wider font-semibold text-sm">ACCESO RESTRINGIDO</p>
           </div>

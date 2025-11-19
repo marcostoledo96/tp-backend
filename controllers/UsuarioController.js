@@ -123,7 +123,9 @@ class UsuarioController {
       db = getDB();
 
       // Validaciones
-      // No dejamos usuarios "fantasma" sin rol ni credenciales mínimas
+      // Yo: mantengo que el administrador debe enviar username, password, nombre y role_id,
+      // pero quité la restricción de longitud mínima de la contraseña porque se pidió
+      // "sin requerimientos de contraseña".
       if (!username || !password || !nombre || !role_id) {
         return res.status(400).json({
           success: false,
@@ -138,12 +140,7 @@ class UsuarioController {
         });
       }
 
-      if (password.length < 6) {
-        return res.status(400).json({
-          success: false,
-          mensaje: 'La contraseña debe tener al menos 6 caracteres'
-        });
-      }
+      // Yo: no aplico validación de longitud mínima a la contraseña.
 
       // Verificar que el username no exista
       const existente = db.prepare('SELECT id FROM usuarios WHERE username = ?').get(username);
@@ -313,12 +310,7 @@ class UsuarioController {
         });
       }
 
-      if (password.length < 6) {
-        return res.status(400).json({
-          success: false,
-          mensaje: 'La contraseña debe tener al menos 6 caracteres'
-        });
-      }
+      // Yo: no aplico validación de longitud mínima a la nueva contraseña.
 
       // Verificar que el usuario existe
       const usuario = db.prepare('SELECT id FROM usuarios WHERE id = ?').get(id);

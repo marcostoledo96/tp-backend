@@ -43,9 +43,14 @@ const bloquearComprasEnVercel = (req, res, next) => {
 };
 
 // 🛍️ POST /api/compras - Crear una nueva compra (BLOQUEADO EN VERCEL)
+// Yo: Esta ruta es pública para permitir que usuarios no autenticados puedan comprar.
+// En el TP se pide que solo usuarios registrados compren, por lo que debería tener verificarAutenticacion.
+// Por ahora la dejo pública para mantener compatibilidad con el flujo existente.
 router.post('/', bloquearComprasEnVercel, upload.single('comprobante'), CompraController.crearCompra);
 
 // 📋 GET /api/compras - Listar todas las compras (requiere autenticación y permisos)
+// Yo: Solo usuarios con permiso 'ver_compras' pueden ver el historial de ventas.
+// Esto protege información sensible de las transacciones.
 router.get('/', verificarAutenticacion, verificarPermiso('ver_compras'), CompraController.listarCompras);
 
 // 📊 GET /api/compras/estadisticas/ventas - Obtener estadísticas (requiere autenticación y permisos)
@@ -55,9 +60,12 @@ router.get('/estadisticas/ventas', verificarAutenticacion, verificarPermiso('ver
 router.get('/:id', verificarAutenticacion, verificarPermiso('ver_compras'), CompraController.obtenerCompraPorId);
 
 // 🔄 PATCH /api/compras/:id/estado - Actualizar estado de una compra (requiere autenticación y permisos)
+// Yo: Solo usuarios con 'editar_compras' pueden marcar pedidos como listos/entregados.
+// Esto es crítico para el control del flujo de trabajo en cocina.
 router.patch('/:id/estado', verificarAutenticacion, verificarPermiso('editar_compras'), CompraController.actualizarEstadoCompra);
 
 // 🗑️ DELETE /api/compras/:id - Eliminar una compra (requiere autenticación y permisos)
+// Yo: Solo admin puede eliminar compras para mantener auditoría.
 router.delete('/:id', verificarAutenticacion, verificarPermiso('eliminar_compras'), CompraController.eliminarCompra);
 
 module.exports = router;

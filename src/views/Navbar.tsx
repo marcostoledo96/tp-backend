@@ -58,6 +58,14 @@ export function Navbar() {
                     </span>
                   )}
                 </button>
+                {/* Botón de login visible y prominente en el header (Yo: moví el botón desde el footer al header) */}
+                <button
+                  onClick={() => navigate('/vendor/login')}
+                  className="ml-2 bg-gradient-to-r from-[#10b981] to-[#06b6d4] text-white px-4 py-2 sm:px-6 sm:py-2.5 rounded-lg sm:rounded-xl font-bold text-sm sm:text-base hover:from-[#34d399] hover:to-[#0ea5b5] transition-all shadow-lg hover:shadow-[#06b6d4]/50 hover:scale-105"
+                  aria-label="Iniciar sesión"
+                >
+                  Iniciar sesión
+                </button>
               </>
             )}
             
