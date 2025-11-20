@@ -313,26 +313,35 @@ module.exports = router;
 
 ### E. Frontend: Componente RolesAdmin (src/views/RolesAdmin.tsx)
 
+Acá, aunque es frontend, lo uso para explicar **cómo se conecta la pantalla de administración de roles con mi backend de roles y permisos**. Lo importante para la defensa es que entiendas el flujo completo: React arma el formulario, manda un JSON con `permisos: number[]` y el backend guarda esos permisos en la tabla `roles_permisos`.
+
 ```typescript
-// Yo: Este componente permite al admin crear roles y asignar permisos con checkboxes.
+// Yo: Este componente permite al admin crear y editar roles
+// y asignarles permisos individuales mediante checkboxes.
 
 function RolesAdmin() {
-  // Yo: Estado para almacenar roles, permisos agrupados, y el formulario
+  // Yo: Estado para almacenar la lista de roles existente
   const [roles, setRoles] = useState<Role[]>([]);
+
+  // Yo: Estado con los permisos agrupados por categoría, por ejemplo:
+  // { "Productos": [{id:1, nombre:'ver_productos'}, ...], "Compras": [...] }
   const [permisosPorCategoria, setPermisosPorCategoria] = useState<Record<string, Permiso[]>>({});
+
+  // Yo: Estado del formulario actual (crear o editar)
   const [form, setForm] = useState({
-    id: null,
+    id: null as number | null,     // null = creando, número = editando rol existente
     nombre: '',
     descripcion: '',
     activo: true,
-    permisos: [] as number[]  // Yo: Array de IDs de permisos seleccionados
+    permisos: [] as number[]       // Array de IDs de permisos seleccionados
   });
 
-  // Yo: Función para cargar datos iniciales
+  // Yo: Carga inicial de datos (roles y permisos) desde el backend
   async function fetchData() {
     const token = localStorage.getItem('token');
-    
-    // Yo: Fetch paralelo de roles y permisos
+    if (!token) return; // Si no hay token, no intento llamar a la API
+
+    // Yo: Hago en paralelo dos requests: uno para roles y otro para permisos
     const [rolesRes, permisosRes] = await Promise.all([
       fetch(`${API_URL}/api/roles`, {
         headers: { 'Authorization': `Bearer ${token}` }
@@ -345,30 +354,60 @@ function RolesAdmin() {
     const rolesData = await rolesRes.json();
     const permisosData = await permisosRes.json();
 
+    // Yo: Guardo en estado la lista de roles que devuelve el backend
     setRoles(rolesData.data);
-    setPermisosPorCategoria(permisosData.data);  // Objeto agrupado por categoría
+
+    // Yo: Guardo en estado los permisos agrupados por categoría
+    // Esto ya viene pre-armado por el backend para que sea fácil dibujar los checkboxes.
+    setPermisosPorCategoria(permisosData.data);
   }
 
-  // Yo: Función para agregar o quitar un permiso del array
+  // Yo: Alterna un permiso en el formulario (lo agrega o lo quita del array)
   function togglePermiso(id: number) {
     setForm(prev => {
       const existe = prev.permisos.includes(id);
       return {
         ...prev,
-        permisos: existe 
-          ? prev.permisos.filter(p => p !== id)  // Quito si existe
-          : [...prev.permisos, id]                // Agrego si no existe
+        permisos: existe
+          ? prev.permisos.filter(p => p !== id) // Si ya estaba, lo saco (uncheck)
+          : [...prev.permisos, id]              // Si no estaba, lo agrego (check)
       };
     });
   }
 
-  // Yo: Función para guardar el rol (crear o editar)
+  // Yo: Prepara el formulario para editar un rol existente
+  function iniciarEdicion(rol: Role) {
+    setForm({
+      id: rol.id,
+      nombre: rol.nombre,
+      descripcion: rol.descripcion,
+      activo: rol.activo,
+      // Yo: El backend me devuelve un array de permisos con su id, acá solo guardo los IDs
+      permisos: rol.permisos.map(p => p.id)
+    });
+  }
+
+  // Yo: Limpia el formulario y vuelve al modo "crear"
+  function limpiarFormulario() {
+    setForm({
+      id: null,
+      nombre: '',
+      descripcion: '',
+      activo: true,
+      permisos: []
+    });
+  }
+
+  // Yo: Envía al backend el formulario para crear o editar un rol
   async function guardar() {
     const token = localStorage.getItem('token');
-    const url = form.id 
-      ? `${API_URL}/api/roles/${form.id}`  // PUT para editar
-      : `${API_URL}/api/roles`;             // POST para crear
-    
+    if (!token) return;
+
+    // Yo: Si hay id, es edición (PUT). Si no, es creación (POST).
+    const url = form.id
+      ? `${API_URL}/api/roles/${form.id}`   // PUT para editar rol existente
+      : `${API_URL}/api/roles`;            // POST para crear rol nuevo
+
     const method = form.id ? 'PUT' : 'POST';
 
     const response = await fetch(url, {
@@ -381,54 +420,61 @@ function RolesAdmin() {
         nombre: form.nombre,
         descripcion: form.descripcion,
         activo: form.activo,
-        permisos: form.permisos  // Yo: Envío el array de IDs de permisos
+        // Yo: Lo más importante para el backend: un array de IDs de permisos
+        permisos: form.permisos
       })
     });
 
     if (response.ok) {
       alert('Rol guardado con éxito');
-      fetchData();  // Yo: Recargo la lista
-      limpiarFormulario();
+      await fetchData();   // Yo: Recargo los roles para ver los cambios
+      limpiarFormulario(); // Vuelvo a estado inicial
+    } else {
+      // Yo: En una mejora futura, leería el mensaje de error de la API y lo mostraría.
+      alert('Error al guardar el rol');
     }
   }
 
   return (
     <div>
-      {/* Tabla de roles */}
+      {/* Yo: Tabla de roles existentes, cada fila tiene botones para editar/eliminar */}
       <table>
-        {roles.map(rol => (
-          <tr key={rol.id}>
-            <td>{rol.nombre}</td>
-            <td>{rol.descripcion}</td>
-            <td>
-              <button onClick={() => iniciarEdicion(rol)}>Editar</button>
-              <button onClick={() => eliminarRol(rol.id)}>Eliminar</button>
-            </td>
-          </tr>
-        ))}
+        <tbody>
+          {roles.map(rol => (
+            <tr key={rol.id}>
+              <td>{rol.nombre}</td>
+              <td>{rol.descripcion}</td>
+              <td>
+                <button onClick={() => iniciarEdicion(rol)}>Editar</button>
+                <button onClick={() => eliminarRol(rol.id)}>Eliminar</button>
+              </td>
+            </tr>
+          ))}
+        </tbody>
       </table>
 
-      {/* Formulario de creación/edición */}
-      <form>
-        <input 
-          value={form.nombre} 
-          onChange={e => setForm({...form, nombre: e.target.value})} 
+      {/* Yo: Formulario de creación/edición de rol */}
+      <form onSubmit={e => e.preventDefault()}>
+        <input
+          value={form.nombre}
+          onChange={e => setForm({ ...form, nombre: e.target.value })}
           placeholder="Nombre del rol"
         />
-        <textarea 
-          value={form.descripcion} 
-          onChange={e => setForm({...form, descripcion: e.target.value})} 
+
+        <textarea
+          value={form.descripcion}
+          onChange={e => setForm({ ...form, descripcion: e.target.value })}
           placeholder="Descripción"
         />
 
-        {/* Yo: Checkboxes agrupados por categoría */}
+        {/* Yo: Dibujo los checkboxes agrupados por categoría de permisos */}
         {Object.entries(permisosPorCategoria).map(([categoria, permisos]) => (
           <div key={categoria}>
             <h4>{categoria}</h4>
             {permisos.map(permiso => (
               <label key={permiso.id}>
-                <input 
-                  type="checkbox" 
+                <input
+                  type="checkbox"
                   checked={form.permisos.includes(permiso.id)}
                   onChange={() => togglePermiso(permiso.id)}
                 />
@@ -438,14 +484,571 @@ function RolesAdmin() {
           </div>
         ))}
 
-        <button type="button" onClick={guardar}>Guardar</button>
+        <button type="button" onClick={guardar}>
+          {form.id ? 'Actualizar rol' : 'Crear rol'}
+        </button>
       </form>
     </div>
   );
 }
 ```
 
-**Yo explico**: "Este componente React permite al admin ver todos los roles, crear nuevos roles, y asignar permisos mediante checkboxes. Los permisos están agrupados por categoría (productos, compras, usuarios, roles) para que sea más fácil de usar. Cuando hace clic en 'Guardar', envía un array de IDs de permisos al backend, que los guarda en la tabla `roles_permisos`."
+**Yo explico (con foco backend)**:
+
+- Cuando el admin hace clic en **Guardar**, este componente envía al backend un JSON con la forma:
+
+  ```json
+  {
+    "nombre": "Vendedor",
+    "descripcion": "Puede gestionar productos y compras",
+    "activo": true,
+    "permisos": [1, 2, 5, 6]
+  }
+  ```
+
+- El backend recibe este body en el **RoleController** y se encarga de:
+  1. Insertar o actualizar la fila en la tabla `roles`.
+  2. Borrar los permisos viejos de ese rol en `roles_permisos`.
+  3. Insertar nuevas filas en `roles_permisos` con cada `permiso_id` enviado.
+
+De esta forma, puedo defender cómo el **frontend se conecta con el sistema de permisos del backend**.
+
+---
+
+### F. Backend: CRUD de Productos (Modelo + Controlador + Rutas)
+
+Ahora paso a bloques 100% backend para estudiar el CRUD de productos.
+
+#### 1. Modelo de Productos (models/ProductoModel.js)
+
+```javascript
+// Yo: Este módulo encapsula TODAS las consultas SQL relacionadas con productos.
+const { getDb } = require('./database');
+
+function listarProductosActivos() {
+  const db = getDb();
+  // Yo: Solo traigo productos con activo = 1 para el menú público
+  return db.prepare('SELECT * FROM productos WHERE activo = 1').all();
+}
+
+function listarProductosAdmin() {
+  const db = getDb();
+  // Yo: Para admin traigo todos, incluso inactivos, para que pueda gestionarlos
+  return db.prepare('SELECT * FROM productos').all();
+}
+
+function obtenerProductoPorId(id) {
+  const db = getDb();
+  return db.prepare('SELECT * FROM productos WHERE id = ?').get(id);
+}
+
+function crearProducto(datos) {
+  const db = getDb();
+  const stmt = db.prepare(`
+    INSERT INTO productos (nombre, descripcion, precio, stock, categoria, imagen_url, activo)
+    VALUES (@nombre, @descripcion, @precio, @stock, @categoria, @imagen_url, @activo)
+  `);
+
+  const info = stmt.run(datos);
+  // Yo: Devuelvo el producto recién creado consultando por lastInsertRowid
+  return obtenerProductoPorId(info.lastInsertRowid);
+}
+
+function actualizarProducto(id, datos) {
+  const db = getDb();
+  const stmt = db.prepare(`
+    UPDATE productos
+    SET nombre = @nombre,
+        descripcion = @descripcion,
+        precio = @precio,
+        stock = @stock,
+        categoria = @categoria,
+        imagen_url = @imagen_url,
+        activo = @activo
+    WHERE id = @id
+  `);
+
+  stmt.run({ ...datos, id });
+  return obtenerProductoPorId(id);
+}
+
+function eliminarProductoSoft(id) {
+  const db = getDb();
+  // Yo: Soft delete = marco activo = 0 pero no borro la fila
+  const stmt = db.prepare('UPDATE productos SET activo = 0 WHERE id = ?');
+  const result = stmt.run(id);
+  return result.changes > 0;
+}
+
+module.exports = {
+  listarProductosActivos,
+  listarProductosAdmin,
+  obtenerProductoPorId,
+  crearProducto,
+  actualizarProducto,
+  eliminarProductoSoft
+};
+```
+
+**Yo explico**:
+
+- **`listarProductosActivos`**: se usa para el menú público. Solo muestra productos que no están dados de baja.
+- **`listarProductosAdmin`**: se usa en el panel de admin para ver TODO, incluso lo inactivo.
+- **`crearProducto`**: hace un `INSERT` y luego devuelve el producto recién creado para mostrarlo al frontend.
+- **`actualizarProducto`**: hace un `UPDATE` completo de todas las columnas relevantes.
+- **`eliminarProductoSoft`**: no borra la fila, solo marca `activo = 0`.
+
+Esto me permite explicar muy claro cómo separo la lógica de acceso a datos en un modelo.
+
+#### 2. Controlador de Productos (controllers/ProductoController.js)
+
+```javascript
+// Yo: Este controlador recibe la request HTTP y llama a ProductoModel.
+const ProductoModel = require('../models/ProductoModel');
+
+async function listarPublic(req, res) {
+  try {
+    const productos = ProductoModel.listarProductosActivos();
+    return res.json({ success: true, data: productos });
+  } catch (error) {
+    console.error('Error listando productos públicos:', error);
+    return res.status(500).json({ success: false, mensaje: 'Error al listar productos' });
+  }
+}
+
+async function listarAdmin(req, res) {
+  try {
+    const productos = ProductoModel.listarProductosAdmin();
+    return res.json({ success: true, data: productos });
+  } catch (error) {
+    console.error('Error listando productos admin:', error);
+    return res.status(500).json({ success: false, mensaje: 'Error al listar productos' });
+  }
+}
+
+async function crear(req, res) {
+  try {
+    const { nombre, descripcion, precio, stock, categoria, imagen_url } = req.body;
+
+    if (!nombre || !precio) {
+      return res.status(400).json({ success: false, mensaje: 'Nombre y precio son obligatorios' });
+    }
+
+    const producto = ProductoModel.crearProducto({
+      nombre,
+      descripcion: descripcion || '',
+      precio,
+      stock: stock || 0,
+      categoria: categoria || null,
+      imagen_url: imagen_url || null,
+      activo: 1
+    });
+
+    return res.status(201).json({ success: true, data: producto });
+  } catch (error) {
+    console.error('Error creando producto:', error);
+    return res.status(500).json({ success: false, mensaje: 'Error al crear producto' });
+  }
+}
+
+async function actualizar(req, res) {
+  try {
+    const id = Number(req.params.id);
+    const existente = ProductoModel.obtenerProductoPorId(id);
+    if (!existente) {
+      return res.status(404).json({ success: false, mensaje: 'Producto no encontrado' });
+    }
+
+    const { nombre, descripcion, precio, stock, categoria, imagen_url, activo } = req.body;
+
+    const productoActualizado = ProductoModel.actualizarProducto(id, {
+      nombre: nombre ?? existente.nombre,
+      descripcion: descripcion ?? existente.descripcion,
+      precio: precio ?? existente.precio,
+      stock: stock ?? existente.stock,
+      categoria: categoria ?? existente.categoria,
+      imagen_url: imagen_url ?? existente.imagen_url,
+      activo: typeof activo === 'boolean' ? (activo ? 1 : 0) : existente.activo
+    });
+
+    return res.json({ success: true, data: productoActualizado });
+  } catch (error) {
+    console.error('Error actualizando producto:', error);
+    return res.status(500).json({ success: false, mensaje: 'Error al actualizar producto' });
+  }
+}
+
+async function eliminar(req, res) {
+  try {
+    const id = Number(req.params.id);
+    const ok = ProductoModel.eliminarProductoSoft(id);
+    if (!ok) {
+      return res.status(404).json({ success: false, mensaje: 'Producto no encontrado' });
+    }
+    return res.json({ success: true, mensaje: 'Producto eliminado (soft delete)' });
+  } catch (error) {
+    console.error('Error eliminando producto:', error);
+    return res.status(500).json({ success: false, mensaje: 'Error al eliminar producto' });
+  }
+}
+
+module.exports = {
+  listarPublic,
+  listarAdmin,
+  crear,
+  actualizar,
+  eliminar
+};
+```
+
+**Yo explico**:
+
+- El controlador **no hace SQL directo**, delega siempre al modelo.
+- Maneja **validaciones de negocio** (por ejemplo, nombre y precio obligatorios).
+- Maneja **códigos HTTP correctos**: 201 para creado, 404 si no existe, 500 si hay error.
+
+#### 3. Rutas de Productos (routes/productos.js)
+
+```javascript
+const express = require('express');
+const router = express.Router();
+const ProductoController = require('../controllers/ProductoController');
+const { verificarAutenticacion, verificarPermiso } = require('../middleware/auth');
+
+// Yo: Listado público de productos (no requiere login)
+router.get('/', ProductoController.listarPublic);
+
+// Yo: Listado completo para admin/vendedor (requiere permiso ver_productos)
+router.get('/admin/all',
+  verificarAutenticacion,
+  verificarPermiso('ver_productos'),
+  ProductoController.listarAdmin
+);
+
+// Yo: Crear producto (solo admin y vendedor)
+router.post('/',
+  verificarAutenticacion,
+  verificarPermiso('gestionar_productos'),
+  ProductoController.crear
+);
+
+// Yo: Actualizar producto
+router.put('/:id',
+  verificarAutenticacion,
+  verificarPermiso('gestionar_productos'),
+  ProductoController.actualizar
+);
+
+// Yo: Eliminar producto (soft delete)
+router.delete('/:id',
+  verificarAutenticacion,
+  verificarPermiso('gestionar_productos'),
+  ProductoController.eliminar
+);
+
+module.exports = router;
+```
+
+**Yo resumo el CRUD de productos**:
+
+1. **Modelo**: hace todo el acceso a datos (SELECT/INSERT/UPDATE).
+2. **Controlador**: valida y arma la respuesta HTTP.
+3. **Rutas**: protegen con `verificarAutenticacion` + `verificarPermiso` y llaman al controlador.
+
+Con esto puedo explicar claramente todo el flujo de un CRUD real en backend.
+
+---
+
+### G. Backend: Flujo de Compras (crear compra + estados)
+
+Para estudiar compras me enfoco en dos partes:
+
+1. **Creación de compra** (ya expliqué `crearCompra`, pero lo vuelvo a resumir).
+2. **Actualización de estado de compra** (pendiente → listo → entregado).
+
+#### 1. Modelo de Compras (models/CompraModel.js)
+
+```javascript
+// Yo: Este modelo maneja la tabla compras y detalles_compra.
+const { getDb } = require('./database');
+
+function crearCompra(datosCompra, itemsConDetalles) {
+  const db = getDb();
+
+  // Yo: Uso una transacción para asegurar consistencia entre compra y detalles.
+  const insertar = db.transaction(() => {
+    const stmtCompra = db.prepare(`
+      INSERT INTO compras (
+        comprador_nombre,
+        comprador_mesa,
+        comprador_telefono,
+        metodo_pago,
+        comprobante_archivo,
+        total,
+        estado,
+        abonado,
+        listo,
+        entregado
+      ) VALUES (@comprador_nombre, @comprador_mesa, @comprador_telefono, @metodo_pago,
+                @comprobante_archivo, @total, @estado, @abonado, @listo, @entregado)
+    `);
+
+    const info = stmtCompra.run(datosCompra);
+
+    const stmtDetalle = db.prepare(`
+      INSERT INTO detalles_compra (
+        compra_id,
+        producto_id,
+        cantidad,
+        precio_unitario,
+        subtotal,
+        nombre_producto
+      ) VALUES (@compra_id, @producto_id, @cantidad, @precio_unitario, @subtotal, @nombre_producto)
+    `);
+
+    for (const item of itemsConDetalles) {
+      stmtDetalle.run({
+        compra_id: info.lastInsertRowid,
+        producto_id: item.producto_id,
+        cantidad: item.cantidad,
+        precio_unitario: item.precio_unitario,
+        subtotal: item.subtotal,
+        nombre_producto: item.nombre_producto
+      });
+    }
+
+    // Yo: Devuelvo la compra recién creada con su id
+    const compraCreada = db.prepare('SELECT * FROM compras WHERE id = ?').get(info.lastInsertRowid);
+    return compraCreada;
+  });
+
+  return insertar();
+}
+
+function actualizarEstado(id, nuevoEstado) {
+  const db = getDb();
+  const stmt = db.prepare(`
+    UPDATE compras
+    SET estado = @estado,
+        listo = CASE WHEN @estado = 'listo' THEN 1 ELSE listo END,
+        entregado = CASE WHEN @estado = 'entregado' THEN 1 ELSE entregado END
+    WHERE id = @id
+  `);
+
+  const result = stmt.run({ id, estado: nuevoEstado });
+  return result.changes > 0;
+}
+
+module.exports = {
+  crearCompra,
+  actualizarEstado
+};
+```
+
+**Yo explico**:
+
+- **`crearCompra`**: mete en una sola transacción la fila en `compras` y todas las filas en `detalles_compra`.
+- **`actualizarEstado`**: actualiza la columna `estado` y, según el valor, también marca flags `listo` o `entregado`.
+
+#### 2. Controlador de Compras (controllers/CompraController.js) – parte de actualizar estado
+
+```javascript
+// Yo: Esta función maneja PUT /api/compras/:id para cambiar el estado.
+async function actualizarCompra(req, res) {
+  try {
+    const id = Number(req.params.id);
+    const { estado } = req.body;
+
+    // Yo: Valido que el nuevo estado sea uno permitido
+    const estadosPermitidos = ['pendiente', 'listo', 'entregado', 'cancelado'];
+    if (!estadosPermitidos.includes(estado)) {
+      return res.status(400).json({ success: false, mensaje: 'Estado no válido' });
+    }
+
+    const ok = CompraModel.actualizarEstado(id, estado);
+    if (!ok) {
+      return res.status(404).json({ success: false, mensaje: 'Compra no encontrada' });
+    }
+
+    return res.json({ success: true, mensaje: 'Estado actualizado correctamente' });
+  } catch (error) {
+    console.error('Error actualizando compra:', error);
+    return res.status(500).json({ success: false, mensaje: 'Error al actualizar compra' });
+  }
+}
+```
+
+**Yo resumo el flujo de compras**:
+
+- El frontend manda un POST con los productos, método de pago y datos del comprador.
+- El backend valida stock, recalcula total y llama a `CompraModel.crearCompra`.
+- Luego descuenta stock con `ProductoModel.descontarStock`.
+- Más tarde, desde el panel de admin, se puede cambiar el estado con PUT `/api/compras/:id`.
+
+---
+
+### H. Backend: Gestión de Usuarios (login + CRUD admin)
+
+Finalmente, agrego bloques para estudiar bien la gestión de usuarios.
+
+#### 1. Modelo de Usuarios (models/UsuarioModel.js) – parte principal
+
+```javascript
+// Yo: Modelo encargado de la tabla usuarios.
+const { getDb } = require('./database');
+
+function obtenerPorUsername(username) {
+  const db = getDb();
+  return db.prepare('SELECT * FROM usuarios WHERE username = ?').get(username);
+}
+
+function obtenerPorId(id) {
+  const db = getDb();
+  return db.prepare('SELECT * FROM usuarios WHERE id = ?').get(id);
+}
+
+function crearUsuario(datos) {
+  const db = getDb();
+  const stmt = db.prepare(`
+    INSERT INTO usuarios (username, password_hash, nombre_completo, role_id, activo)
+    VALUES (@username, @password_hash, @nombre_completo, @role_id, @activo)
+  `);
+
+  const info = stmt.run(datos);
+  return obtenerPorId(info.lastInsertRowid);
+}
+
+function listarUsuarios() {
+  const db = getDb();
+  return db.prepare(`
+    SELECT u.id, u.username, u.nombre_completo, u.activo, r.nombre as rol
+    FROM usuarios u
+    JOIN roles r ON u.role_id = r.id
+  `).all();
+}
+
+module.exports = {
+  obtenerPorUsername,
+  obtenerPorId,
+  crearUsuario,
+  listarUsuarios
+};
+```
+
+**Yo explico**:
+
+- El modelo maneja operaciones típicas: buscar por username, por id, crear y listar.
+- Notar que nunca guardo la contraseña en texto plano, solo `password_hash`.
+
+#### 2. Controlador de Auth (controllers/AuthController.js) – login
+
+```javascript
+// Yo: Este controlador maneja POST /api/auth/login.
+const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
+const UsuarioModel = require('../models/UsuarioModel');
+const RoleModel = require('../models/RoleModel');
+
+async function login(req, res) {
+  try {
+    const { username, password } = req.body;
+
+    // Yo: Busco el usuario por username
+    const usuario = UsuarioModel.obtenerPorUsername(username);
+    if (!usuario) {
+      return res.status(401).json({ success: false, mensaje: 'Credenciales inválidas' });
+    }
+
+    // Yo: Comparo la contraseña enviada con el hash guardado
+    const ok = await bcrypt.compare(password, usuario.password_hash);
+    if (!ok) {
+      return res.status(401).json({ success: false, mensaje: 'Credenciales inválidas' });
+    }
+
+    // Yo: Obtengo los permisos del rol del usuario
+    const permisos = RoleModel.obtenerPermisosUsuario(usuario.id);
+
+    // Yo: Armo el payload del JWT con id, rol y permisos
+    const payload = {
+      id: usuario.id,
+      role_id: usuario.role_id,
+      permisos: permisos.map(p => p.nombre)
+    };
+
+    const token = jwt.sign(payload, process.env.JWT_SECRET, {
+      expiresIn: '8h'
+    });
+
+    return res.json({
+      success: true,
+      token,
+      usuario: {
+        id: usuario.id,
+        username: usuario.username,
+        nombre_completo: usuario.nombre_completo
+      }
+    });
+  } catch (error) {
+    console.error('Error en login:', error);
+    return res.status(500).json({ success: false, mensaje: 'Error en login' });
+  }
+}
+```
+
+**Yo explico**:
+
+- Valido credenciales con `bcrypt.compare`.
+- Cargo los permisos del usuario desde la BD.
+- Firmo un JWT que se usará en todas las rutas protegidas.
+
+#### 3. Controlador de Usuarios Admin (controllers/UsuarioController.js) – crear usuario
+
+```javascript
+// Yo: Controlador para que el admin pueda crear nuevos usuarios.
+const bcrypt = require('bcryptjs');
+const UsuarioModel = require('../models/UsuarioModel');
+
+async function crearUsuario(req, res) {
+  try {
+    const { username, password, nombre_completo, role_id } = req.body;
+
+    if (!username || !password || !role_id) {
+      return res.status(400).json({ success: false, mensaje: 'Faltan datos obligatorios' });
+    }
+
+    const existente = UsuarioModel.obtenerPorUsername(username);
+    if (existente) {
+      return res.status(409).json({ success: false, mensaje: 'El username ya existe' });
+    }
+
+    const hash = await bcrypt.hash(password, 10);
+
+    const usuario = UsuarioModel.crearUsuario({
+      username,
+      password_hash: hash,
+      nombre_completo: nombre_completo || username,
+      role_id,
+      activo: 1
+    });
+
+    return res.status(201).json({ success: true, data: usuario });
+  } catch (error) {
+    console.error('Error creando usuario:', error);
+    return res.status(500).json({ success: false, mensaje: 'Error al crear usuario' });
+  }
+}
+```
+
+**Yo explico**:
+
+- Solo el admin (con permiso `gestionar_usuarios`) puede llamar a este endpoint.
+- Valido datos, controlo que no se repita el username, hasheo contraseña y creo el usuario.
+
+Con estas secciones extra, `DEFENSA.md` ahora tiene bloques de código **bien detallados** para estudiar backend de:
+
+- CRUD de productos.
+- Flujo de compras.
+- Gestión de usuarios y login.
 
 ---
 
