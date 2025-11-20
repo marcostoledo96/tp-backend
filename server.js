@@ -62,16 +62,18 @@ app.use((err, req, res, next) => {
   });
 });
 
-// Iniciar el servidor
+// Iniciar el servidor (evitar levantar múltiples veces en entorno de test)
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-  console.log(`\n🚀 Servidor corriendo en http://localhost:${PORT}`);
-  console.log(`🏗️  Arquitectura: MVC (Modelo-Vista-Controlador)`);
-  console.log(`📋 API Health: http://localhost:${PORT}/api/health`);
-  console.log(`🛍️ API Productos: http://localhost:${PORT}/api/productos`);
-  console.log(`🛒 API Compras: http://localhost:${PORT}/api/compras`);
-  console.log(`🔐 API Auth: http://localhost:${PORT}/api/auth/login\n`);
-});
+if (process.env.NODE_ENV !== 'test') {
+  app.listen(PORT, () => {
+    console.log(`\n🚀 Servidor corriendo en http://localhost:${PORT}`);
+    console.log(`🏗️  Arquitectura: MVC (Modelo-Vista-Controlador)`);
+    console.log(`📋 API Health: http://localhost:${PORT}/api/health`);
+    console.log(`🛍️ API Productos: http://localhost:${PORT}/api/productos`);
+    console.log(`🛒 API Compras: http://localhost:${PORT}/api/compras`);
+    console.log(`🔐 API Auth: http://localhost:${PORT}/api/auth/login\n`);
+  });
+}
 
 // Exportar para Vercel
 module.exports = app;
