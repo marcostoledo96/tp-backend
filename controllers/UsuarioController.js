@@ -354,8 +354,8 @@ class UsuarioController {
   static async actualizarPerfil(req, res) {
     let db;
     try {
-      // El ID del usuario viene del token JWT (req.user)
-      const userId = req.user.userId;
+      // El ID del usuario viene del token JWT (req.usuario)
+      const userId = req.usuario.userId;
       const { nombre_completo, telefono, password } = req.body;
       db = getDB();
 

@@ -155,15 +155,15 @@ try {
   }
   console.log(`  - Visitador: ${permisosVisitador.length} permisos asignados (solo lectura)`);
 
-  // Comprador: puede ver productos y generar órdenes de compra
-  const permisosComprador = ['ver_productos', 'crear_compra'];
+  // Comprador: puede ver productos, generar órdenes de compra Y ver sus compras
+  const permisosComprador = ['ver_productos', 'crear_compra', 'ver_compras'];
   for (const nombrePermiso of permisosComprador) {
     const permiso = db.prepare('SELECT id FROM permisos WHERE nombre = ?').get(nombrePermiso);
     if (permiso) {
       insertRolePermiso.run(roleComprador.id, permiso.id);
     }
   }
-  console.log(`  - Comprador: ${permisosComprador.length} permisos asignados (compra y vista de productos)`);
+  console.log(`  - Comprador: ${permisosComprador.length} permisos asignados (compra y vista de productos/compras)`);
 
   // 8. Asignar rol admin al usuario admin existente
   console.log('\n8. Asignando rol al usuario admin...');

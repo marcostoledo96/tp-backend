@@ -143,7 +143,17 @@ export function AdminPanelNew() {
     if (activeTab === 'products') {
       fetchProducts();
     } else {
-      fetchPurchases();
+      // Solo intentar cargar compras si el usuario tiene el permiso
+      const usuario = JSON.parse(localStorage.getItem('user') || '{}');
+      const permisos = usuario.permisos || [];
+      
+      if (permisos.includes('ver_compras')) {
+        fetchPurchases();
+      } else {
+        console.log('Usuario no tiene permiso para ver compras');
+        setPurchases([]);
+        setLoading(false);
+      }
     }
   }, [activeTab]);
 

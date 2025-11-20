@@ -863,14 +863,14 @@ async function crearProducto(req, res) {
     // Yo: req.body contiene los datos enviados por el frontend en formato JSON
     const { nombre, categoria, subcategoria, precio, stock, descripcion, imagen_url, activo } = req.body;
 
-    console.log('➕ Creando nuevo producto:', { nombre, categoria, precio });
+    console.log('➕ Creando nuevo producto:', { nombre, categoria, subcategoria, precio });
 
     // ========== VALIDACIÓN 1: Campos obligatorios ==========
-    // Yo: Verifico que nombre y precio estén presentes
-    if (!nombre || precio === undefined || precio === null) {
+    // Yo: Verifico que nombre, categoria, subcategoria y precio estén presentes
+    if (!nombre || !categoria || !subcategoria || precio === undefined || precio === null) {
       return res.status(400).json({
         success: false,
-        mensaje: 'El nombre y el precio son obligatorios'
+        mensaje: 'Faltan datos obligatorios: nombre, categoria, subcategoria y precio'
       });
     }
 
@@ -896,8 +896,8 @@ async function crearProducto(req, res) {
     // Yo: Si todas las validaciones pasaron, llamo al modelo para crear el producto
     const producto = ProductoModel.crearProducto({
       nombre,
-      categoria: categoria || null,
-      subcategoria: subcategoria || null,
+      categoria,
+      subcategoria,
       precio,
       stock: stock || 0,
       descripcion: descripcion || '',

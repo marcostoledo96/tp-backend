@@ -38,6 +38,31 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
   return <>{children}</>;
 }
 
+// Componente para proteger rutas exclusivas de vendor (admin, vendedor, visitador)
+function VendorRoute({ children }: { children: React.ReactNode }) {
+  const { user, loading } = useAuth();
+  
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-[#0a0a0a] flex items-center justify-center">
+        <div className="text-white text-xl">Cargando...</div>
+      </div>
+    );
+  }
+  
+  // Si no hay usuario, redirigir al login
+  if (!user) {
+    return <Navigate to="/vendor/login" replace />;
+  }
+  
+  // Si el usuario no es admin, vendedor o visitador, redirigir al menú
+  if (user.role !== 'admin' && user.role !== 'vendedor' && user.role !== 'visitador') {
+    return <Navigate to="/menu" replace />;
+  }
+  
+  return <>{children}</>;
+}
+
 function AppContent() {
   return (
     <Router>
@@ -76,25 +101,25 @@ function AppContent() {
             <Route 
               path="/vendor/panel" 
               element={
-                <ProtectedRoute>
+                <VendorRoute>
                   <AdminPanelNew />
-                </ProtectedRoute>
+                </VendorRoute>
               } 
             />
             <Route 
               path="/vendor/roles" 
               element={
-                <ProtectedRoute>
+                <VendorRoute>
                   <RolesAdmin />
-                </ProtectedRoute>
+                </VendorRoute>
               } 
             />
             <Route 
               path="/vendor/usuarios" 
               element={
-                <ProtectedRoute>
+                <VendorRoute>
                   <UsuariosAdmin />
-                </ProtectedRoute>
+                </VendorRoute>
               } 
             />
           </Routes>

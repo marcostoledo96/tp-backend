@@ -102,13 +102,13 @@ async function crearProducto(req, res) {
   try {
     const { nombre, categoria, subcategoria, precio, stock, descripcion, imagen_url, activo } = req.body;
 
-    console.log('➕ Creando nuevo producto:', { nombre, categoria, precio });
+    console.log('➕ Creando nuevo producto:', { nombre, categoria, subcategoria, precio });
 
     // Validar campos obligatorios
-    if (!nombre || !categoria || precio === undefined) {
+    if (!nombre || !categoria || !subcategoria || precio === undefined) {
       return res.status(400).json({
         success: false,
-        mensaje: 'Faltan datos obligatorios: nombre, categoria y precio'
+        mensaje: 'Faltan datos obligatorios: nombre, categoria, subcategoria y precio'
       });
     }
 
@@ -116,7 +116,7 @@ async function crearProducto(req, res) {
     const nuevoProducto = ProductoModel.crearProducto({
       nombre,
       categoria,
-      subcategoria: subcategoria || null,
+      subcategoria,
       precio: parseFloat(precio),
       stock: parseInt(stock) || 0,
       descripcion: descripcion || null,
@@ -159,6 +159,28 @@ async function actualizarProducto(req, res) {
       return res.status(404).json({
         success: false,
         mensaje: 'Producto no encontrado'
+      });
+    }
+
+    // Validar campos obligatorios si se proporcionan
+    if (nombre !== undefined && !nombre) {
+      return res.status(400).json({
+        success: false,
+        mensaje: 'El nombre no puede estar vacío'
+      });
+    }
+
+    if (categoria !== undefined && !categoria) {
+      return res.status(400).json({
+        success: false,
+        mensaje: 'La categoría no puede estar vacía'
+      });
+    }
+
+    if (subcategoria !== undefined && !subcategoria) {
+      return res.status(400).json({
+        success: false,
+        mensaje: 'La subcategoría no puede estar vacía'
       });
     }
 

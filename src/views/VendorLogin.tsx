@@ -16,10 +16,16 @@ export function VendorLogin() {
   const { login, user, loading } = useAuth();
   const navigate = useNavigate();
 
-  // Redirigir automáticamente si ya está autenticado
+  // Redirigir automáticamente si ya está autenticado con rol apropiado
   useEffect(() => {
     if (!loading && user) {
-      navigate('/vendor/panel', { replace: true });
+      // Solo redirigir a vendor/panel si el usuario es admin, vendedor o visitador
+      if (user.role === 'admin' || user.role === 'vendedor' || user.role === 'visitador') {
+        navigate('/vendor/panel', { replace: true });
+      } else if (user.role === 'comprador') {
+        // Si es comprador, redirigir al menú o perfil
+        navigate('/menu', { replace: true });
+      }
     }
   }, [user, loading, navigate]);
 
