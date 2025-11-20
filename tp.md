@@ -1,7 +1,7 @@
 # TRABAJO FINAL INTEGRADOR
 ## Extensión del Sistema de Usuarios, Roles y Permisos con Carrito de Compras
 
-> Archivo preparado para mi defensa oral. Todo está escrito en primera persona. Me enfoco en backend: arquitectura, modelos, controladores, rutas, permisos, validaciones, concurrencia y decisiones técnicas. Incluyo explicaciones línea por línea de los bloques clave (CRUD productos, compras, usuarios, permisos, autenticación, stock, perfil). Así, si el evaluador me pide “andá al CRUD de productos” o “explicame la parte que descuenta stock” lo tengo listo.
+> Archivo preparado para mi defensa oral. Me enfoco en backend: arquitectura, modelos, controladores, rutas, permisos, validaciones, concurrencia y decisiones técnicas. Incluyo explicaciones línea por línea de los bloques clave (CRUD productos, compras, usuarios, permisos, autenticación, stock, perfil). Así, si el evaluador me pide “andá al CRUD de productos” o “explicame la parte que descuenta stock” lo tengo listo.
 
 ---
 ## 1. Objetivo General
@@ -40,18 +40,18 @@ Validaciones:
 Flujo: el frontend arma los productos del carrito, pero en backend recalculo total y revalido stock “real”. Registro compra y luego descuento stock de forma atómica. Si método de pago es transferencia exijo comprobante (archivo convertido a base64). Cada detalle guarda snapshot del precio y nombre para auditoría.
 
 ### Permisos Clave
-| Permiso | Uso |
-|---------|-----|
-| ver_productos | Listar productos |
-| gestionar_productos | Crear/editar/eliminar productos |
-| crear_compra | Registrar compras |
-| ver_compras | Ver historial/estadísticas |
-| editar_compras | Cambiar estado (abonado, listo, entregado) |
-| eliminar_compras | Borrar compras |
-| ver_usuarios | Ver usuarios |
-| gestionar_usuarios | CRUD usuarios |
-| ver_roles | Ver roles |
-| gestionar_roles | CRUD roles y asignación permisos |
+| Permiso               | Uso                                        |
+|-----------------------|--------------------------------------------|
+| ver_productos         | Listar productos                           |
+| gestionar_productos   | Crear/editar/eliminar productos            |
+| crear_compra          | Registrar compras                          |
+| ver_compras           | Ver historial/estadísticas                 |
+| editar_compras        | Cambiar estado (abonado, listo, entregado) |
+| eliminar_compras      | Borrar compras                             |
+| ver_usuarios          | Ver usuarios                               |
+| gestionar_usuarios    | CRUD usuarios                              |
+| ver_roles             | Ver roles                                  |
+| gestionar_roles       | CRUD roles y asignación permisos           |
 
 Roles creados por script: admin, vendedor, visitador, comprador. Asigné permisos según alcance (admin todos, vendedor gestión de productos y ventas, visitador solo lectura, comprador visualización y compra).
 
@@ -359,12 +359,19 @@ static async actualizarPerfil(req,res){
 | Pregunta | Respuesta Resumida |
 |----------|--------------------|
 | ¿Cómo evito doble venta del último stock? | WHERE stock >= ? en UPDATE (atomicidad). |
+
 | ¿Por qué guardo precio_unitario en detalles_compra? | Auditoría; si cambia el precio mantengo histórico. |
+
 | ¿Por qué soft delete en productos? | Mantener referencias históricas y evitar inconsistencia. |
+
 | ¿Qué pasa si falla descuento de stock después de crear compra? | Registro error; mejora futura: transacción conjunta o rollback. |
+
 | ¿Por qué JWT y no sesiones? | Stateless, escalable, simple para API multi-cliente. |
+
 | ¿Cómo agrego un permiso nuevo? | Insert en permisos, asignación en roles_permisos; el middleware lo toma automáticamente. |
+
 | ¿Cómo valido rol vs permiso? | Primero admin bypass; luego array de permisos del token o consulta RoleModel. |
+
 | ¿Qué diferencia hay entre perfil y usuario CRUD? | Perfil: sólo modifica sus datos; CRUD: admin gestiona terceros. |
 
 ## 13. Consultas SQL de Verificación Rápida
