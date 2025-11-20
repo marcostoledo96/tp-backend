@@ -6,7 +6,8 @@ import { toast } from 'react-hot-toast';
 import API_BASE_URL from '../config/api';
 
 export default function Profile() {
-  const { user, token, setUser } = useAuth();
+  const { user } = useAuth();
+  const token = localStorage.getItem('token');
   const navigate = useNavigate();
   
   const [formData, setFormData] = useState({
@@ -36,7 +37,7 @@ export default function Profile() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!user?.id || !token) {
+    if (!user?.username || !token) {
       toast.error('Error: No hay sesión activa');
       return;
     }
@@ -80,14 +81,15 @@ export default function Profile() {
         throw new Error(errorData.message || 'Error al actualizar perfil');
       }
 
-      const data = await response.json();
+      await response.json();
       
-      // Actualizar contexto de usuario
-      setUser({
+      // Actualizar usuario en localStorage
+      const updatedUser = {
         ...user,
         name: formData.nombre_completo,
         phone: formData.telefono
-      });
+      };
+      localStorage.setItem('user', JSON.stringify(updatedUser));
 
       // Limpiar campos de contraseña
       setFormData(prev => ({

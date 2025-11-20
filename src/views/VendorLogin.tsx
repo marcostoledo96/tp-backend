@@ -176,10 +176,6 @@ export function VendorLogin() {
                 <p className="text-[#fbbf24] font-mono text-sm">vendedor1 / <span className="text-gray-300">vend123</span></p>
               </div>
               <div>
-                <p className="text-xs text-gray-400 uppercase tracking-wide">Visitador</p>
-                <p className="text-[#fbbf24] font-mono text-sm">visitador1 / <span className="text-gray-300">visit123</span></p>
-              </div>
-              <div>
                 <p className="text-xs text-gray-400 uppercase tracking-wide">Comprador</p>
                 <p className="text-[#fbbf24] font-mono text-sm">comprador1 / <span className="text-gray-300">compra123</span></p>
               </div>

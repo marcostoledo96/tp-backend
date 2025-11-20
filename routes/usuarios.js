@@ -60,6 +60,7 @@ router.put('/:id',
 // PUT /api/usuarios/:id/password - Cambiar contraseña (SOLO admin)
 router.put('/:id/password', 
   bloquearEscrituraEnVercel,
+  verificarAutenticacion,
   verificarPermiso('gestionar_usuarios'),
   UsuarioController.cambiarPassword
 );
@@ -67,6 +68,7 @@ router.put('/:id/password',
 // DELETE /api/usuarios/:id - Eliminar usuario (SOLO admin)
 router.delete('/:id', 
   bloquearEscrituraEnVercel,
+  verificarAutenticacion,
   verificarPermiso('gestionar_usuarios'),
   UsuarioController.eliminarUsuario
 );

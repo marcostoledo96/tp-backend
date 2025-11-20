@@ -180,7 +180,17 @@ function eliminarProductoPermanente(id) {
     // Iniciar transacción para eliminar de forma segura
     db.prepare('BEGIN TRANSACTION').run();
     
-    // Eliminar el producto definitivamente
+    // IMPORTANTE: Primero eliminar detalles_compra asociados
+    // Esto es necesario debido a la foreign key constraint
+    const stmtDetalles = db.prepare(`
+      DELETE FROM detalles_compra
+      WHERE producto_id = ?
+    `);
+    const detallesEliminados = stmtDetalles.run(id);
+    
+    console.log(`🗑️ Eliminados ${detallesEliminados.changes} detalles de compra del producto ${id}`);
+    
+    // Ahora sí, eliminar el producto definitivamente
     const stmt = db.prepare(`
       DELETE FROM productos
       WHERE id = ?
@@ -192,10 +202,14 @@ function eliminarProductoPermanente(id) {
     db.prepare('COMMIT').run();
     db.close();
     
-    return result.changes > 0;
+    return { success: result.changes > 0, detallesEliminados: detallesEliminados.changes };
   } catch (error) {
     // Si hay error, revertir cambios
-    db.prepare('ROLLBACK').run();
+    try {
+      db.prepare('ROLLBACK').run();
+    } catch (rollbackError) {
+      // Ignorar errores de rollback
+    }
     db.close();
     throw error;
   }

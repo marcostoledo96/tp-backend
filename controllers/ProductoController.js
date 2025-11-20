@@ -236,9 +236,9 @@ async function eliminarProducto(req, res) {
 
     // Si permanent=true, eliminar definitivamente
     if (permanent === 'true') {
-      const eliminadoPermanente = ProductoModel.eliminarProductoPermanente(id);
+      const resultado = ProductoModel.eliminarProductoPermanente(id);
 
-      if (!eliminadoPermanente) {
+      if (!resultado.success) {
         return res.status(500).json({
           success: false,
           mensaje: 'Error al eliminar el producto definitivamente'
@@ -246,6 +246,9 @@ async function eliminarProducto(req, res) {
       }
 
       console.log('🗑️ Producto ELIMINADO DEFINITIVAMENTE:', id);
+      if (resultado.detallesEliminados > 0) {
+        console.log(`🗑️ También se eliminaron ${resultado.detallesEliminados} detalles de compra asociados`);
+      }
 
       return res.json({
         success: true,

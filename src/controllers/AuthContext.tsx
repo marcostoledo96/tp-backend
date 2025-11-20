@@ -35,7 +35,7 @@ const normalizeRole = (role?: string | null): VendorUser['role'] => {
 };
 
 // Convierte la respuesta del backend en el shape mínimo que el frontend necesita.
-const buildUserFromPayload = (payload: { username?: string; roles?: string[]; role?: string | null; nombre_completo?: string | null; telefono?: string | null }): VendorUser | null => {
+const buildUserFromPayload = (payload: { username?: string; roles?: string[]; role?: string | null; nombre_completo?: string | null; telefono?: string | null; permisos?: string[] }): VendorUser | null => {
   if (!payload?.username) {
     return null;
   }
@@ -44,7 +44,8 @@ const buildUserFromPayload = (payload: { username?: string; roles?: string[]; ro
     username: payload.username,
     role: normalizeRole(payload.roles?.[0] ?? payload.role),
     name: payload.nombre_completo ?? undefined,
-    phone: payload.telefono ?? undefined
+    phone: payload.telefono ?? undefined,
+    permisos: payload.permisos ?? []
   };
 };
 
@@ -57,9 +58,9 @@ const parseStoredUser = (rawUser: string | null): VendorUser | null => {
     const data = JSON.parse(rawUser);
     // Si tenemos datos completos guardados, los devolvemos directamente para conservar el nombre
     if (data && data.username && data.role) {
-      return { username: data.username, role: data.role, name: data.name } as VendorUser;
+      return { username: data.username, role: data.role, name: data.name, phone: data.phone, permisos: data.permisos || [] } as VendorUser;
     }
-    return buildUserFromPayload({ username: data.username, role: data.role, nombre_completo: data.name, telefono: data.phone });
+    return buildUserFromPayload({ username: data.username, role: data.role, nombre_completo: data.name, telefono: data.phone, permisos: data.permisos });
   } catch (error) {
     console.error('Error al parsear usuario almacenado:', error);
     return null;
@@ -103,7 +104,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 roles: data.usuario?.roles,
                 role: data.usuario?.role,
                 nombre_completo: data.usuario?.nombre_completo,
-                telefono: data.usuario?.telefono
+                telefono: data.usuario?.telefono,
+                permisos: data.usuario?.permisos
               });
 
               if (refreshedUser) {
@@ -165,7 +167,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           roles: data.usuario?.roles,
           role: data.usuario?.role,
           nombre_completo: data.usuario?.nombre_completo,
-          telefono: data.usuario?.telefono
+          telefono: data.usuario?.telefono,
+          permisos: data.usuario?.permisos
         });
 
         if (!userData) {

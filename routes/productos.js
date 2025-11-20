@@ -40,7 +40,8 @@ router.post('/', bloquearEscrituraEnVercel, verificarAutenticacion, verificarPer
 router.put('/:id', bloquearEscrituraEnVercel, verificarAutenticacion, verificarPermiso('gestionar_productos'), ProductoController.actualizarProducto);
 
 // DELETE /api/productos/:id - Eliminar un producto (BLOQUEADO EN VERCEL)
-// Solo admin/vendedor pueden dar de baja productos.
+// Solo admin/vendedor pueden dar de baja productos (soft delete).
+// Usa 'gestionar_productos' que incluye crear, editar y eliminar.
 router.delete('/:id', bloquearEscrituraEnVercel, verificarAutenticacion, verificarPermiso('gestionar_productos'), ProductoController.eliminarProducto);
 
 module.exports = router;

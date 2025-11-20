@@ -175,30 +175,31 @@ async function eliminarRol(req, res) {
   try {
     const { id } = req.params;
     
-    // Verificar que no sea un rol del sistema
+    // Verificar que el rol existe
     const rol = RoleModel.obtenerRolPorId(id);
-    const systemRoles = ['admin', 'vendedor', 'visitador'];
-    if (rol && systemRoles.includes(rol.nombre)) {
-      return res.status(403).json({
-        success: false,
-        mensaje: 'No se puede eliminar un rol del sistema'
-      });
-    }
-    
-    const eliminado = RoleModel.eliminarRol(id);
-    
-    if (!eliminado) {
+    if (!rol) {
       return res.status(404).json({
         success: false,
         mensaje: 'Rol no encontrado'
       });
     }
     
-    console.log('✅ Rol eliminado:', id);
+    // Eliminar el rol (esto también eliminará usuarios asociados en cascada)
+    const resultado = RoleModel.eliminarRol(id);
+    
+    if (!resultado.success) {
+      return res.status(500).json({
+        success: false,
+        mensaje: 'Error al eliminar el rol'
+      });
+    }
+    
+    console.log(`✅ Rol eliminado: ${rol.nombre}`);
+    console.log(`🗑️ ${resultado.usuariosEliminados} usuario(s) eliminado(s) en cascada`);
     
     res.json({
       success: true,
-      mensaje: 'Rol eliminado exitosamente'
+      mensaje: `Rol "${rol.nombre}" eliminado exitosamente. ${resultado.usuariosEliminados} usuario(s) eliminado(s) en cascada.`
     });
   } catch (error) {
     console.error('Error al eliminar rol:', error);

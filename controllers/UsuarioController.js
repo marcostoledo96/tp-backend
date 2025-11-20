@@ -435,7 +435,7 @@ class UsuarioController {
       }
 
       // No permitir que el usuario se elimine a sí mismo
-      if (parseInt(id) === req.user.id) {
+      if (parseInt(id) === req.usuario.userId) {
         return res.status(403).json({
           success: false,
           mensaje: 'No puedes eliminar tu propio usuario'

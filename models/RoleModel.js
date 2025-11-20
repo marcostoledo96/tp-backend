@@ -215,23 +215,63 @@ function actualizarRol(id, datos, permisos = null) {
 }
 
 /**
- * Eliminar un rol (soft delete)
- * @param {number} id - ID del rol
- * @returns {boolean} true si se eliminó correctamente
+ * Eliminar un rol DEFINITIVAMENTE con cascada de usuarios
+ * @param {number} id - ID del rol a eliminar
+ * @returns {Object} { success: boolean, usuariosEliminados: number }
  */
 function eliminarRol(id) {
   const db = getDB();
   
-  const stmt = db.prepare(`
-    UPDATE roles
-    SET activo = 0
-    WHERE id = ?
-  `);
-  
-  const result = stmt.run(id);
-  db.close();
-  
-  return result.changes > 0;
+  try {
+    // Iniciar transacción
+    db.prepare('BEGIN TRANSACTION').run();
+    
+    // Paso 1: Contar usuarios que serán eliminados
+    const usuariosCount = db.prepare(`
+      SELECT COUNT(*) as count
+      FROM usuarios
+      WHERE role_id = ?
+    `).get(id);
+    
+    // Paso 2: Eliminar usuarios asociados al rol
+    const stmtUsuarios = db.prepare(`
+      DELETE FROM usuarios
+      WHERE role_id = ?
+    `);
+    stmtUsuarios.run(id);
+    
+    // Paso 3: Eliminar relaciones roles_permisos
+    const stmtRolesPermisos = db.prepare(`
+      DELETE FROM roles_permisos
+      WHERE role_id = ?
+    `);
+    stmtRolesPermisos.run(id);
+    
+    // Paso 4: Eliminar el rol
+    const stmtRol = db.prepare(`
+      DELETE FROM roles
+      WHERE id = ?
+    `);
+    const result = stmtRol.run(id);
+    
+    // Confirmar transacción
+    db.prepare('COMMIT').run();
+    db.close();
+    
+    return { 
+      success: result.changes > 0, 
+      usuariosEliminados: usuariosCount.count 
+    };
+  } catch (error) {
+    // Si hay error, revertir cambios
+    try {
+      db.prepare('ROLLBACK').run();
+    } catch (rollbackError) {
+      // Ignorar errores de rollback
+    }
+    db.close();
+    throw error;
+  }
 }
 
 /**

@@ -37,4 +37,5 @@ export interface VendorUser {
   role: 'admin' | 'vendedor' | 'visitador' | 'comprador';
   name?: string; // nombre completo opcional para saludo
   phone?: string | null; // teléfono opcional
+  permisos?: string[]; // permisos del usuario
 }

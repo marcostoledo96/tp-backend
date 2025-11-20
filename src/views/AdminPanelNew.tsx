@@ -144,8 +144,7 @@ export function AdminPanelNew() {
       fetchProducts();
     } else {
       // Solo intentar cargar compras si el usuario tiene el permiso
-      const usuario = JSON.parse(localStorage.getItem('user') || '{}');
-      const permisos = usuario.permisos || [];
+      const permisos = user?.permisos || [];
       
       if (permisos.includes('ver_compras')) {
         fetchPurchases();
@@ -155,7 +154,7 @@ export function AdminPanelNew() {
         setLoading(false);
       }
     }
-  }, [activeTab]);
+  }, [activeTab, user]);
 
   // Inicializar filteredPurchases cuando purchases cambie
   useEffect(() => {
