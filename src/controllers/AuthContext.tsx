@@ -5,7 +5,7 @@ import { getApiUrl } from '../config/api';
 interface AuthContextType {
   user: VendorUser | null;
   loading: boolean;
-  login: (username: string, password: string, remember?: boolean) => Promise<boolean>;
+  login: (username: string, password: string) => Promise<boolean>;
   logout: () => void;
 }
 
@@ -148,7 +148,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
-  const login = async (username: string, password: string, remember: boolean = true): Promise<boolean> => {
+  const login = async (username: string, password: string): Promise<boolean> => {
     try {
       const response = await fetch(getApiUrl('/api/auth/login'), {
         method: 'POST',

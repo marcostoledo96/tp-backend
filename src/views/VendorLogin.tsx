@@ -46,7 +46,7 @@ export function VendorLogin() {
     
     try {
       // Realizar login (la sesión siempre se guarda automáticamente)
-      const success = await login(username, password, true);
+      const success = await login(username, password);
       
       if (success) {
         // Guardar o limpiar credenciales según preferencia del usuario
