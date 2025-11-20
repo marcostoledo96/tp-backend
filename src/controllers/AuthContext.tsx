@@ -169,7 +169,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         });
 
         if (!userData) {
-          console.error('❌ AuthContext: Respuesta sin datos de usuario válidos');
+          console.error('ERROR AuthContext: Respuesta sin datos de usuario válidos');
           return false;
         }
         
@@ -182,7 +182,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return true;
       }
       
-      console.log('❌ AuthContext: Login falló - no success o no token');
+      console.log('ERROR AuthContext: Login falló - no success o no token');
       return false;
     } catch (error) {
       console.error('💥 AuthContext: Error al iniciar sesión:', error);

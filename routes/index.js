@@ -30,7 +30,7 @@ router.get('/health', (req, res) => {
   
   res.json({
     success: true,
-    mensaje: '✅ API funcionando correctamente - Arquitectura MVC',
+    mensaje: 'API funcionando correctamente - Arquitectura MVC',
     timestamp: new Date().toISOString(),
     architecture: 'MVC (Modelo-Vista-Controlador)',
     database: {

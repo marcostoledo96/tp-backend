@@ -21,7 +21,7 @@ try {
   const roleComprador = db.prepare('SELECT id FROM roles WHERE nombre = ?').get('comprador');
 
   if (!roleAdmin || !roleVendedor || !roleVisitador || !roleComprador) {
-    console.error('❌ Error: Los roles no existen. Ejecuta primero setup-roles-permisos.js');
+    console.error('ERROR: Los roles no existen. Ejecuta primero setup-roles-permisos.js');
     process.exit(1);
   }
 
@@ -87,7 +87,7 @@ try {
              : usuario.role_id === roleVisitador.id ? 'visitador'
              : 'comprador';
     
-    console.log(`✅ ${usuario.nombre}`);
+    console.log(`OK: ${usuario.nombre}`);
     console.log(`   Usuario: ${usuario.username}`);
     console.log(`   Contraseña: ${usuario.password}`);
     console.log(`   Rol: ${roleName}`);
@@ -96,13 +96,13 @@ try {
 
   // Verificar
   const count = db.prepare('SELECT COUNT(*) as c FROM usuarios').get();
-  console.log(`📊 Total de usuarios en la base de datos: ${count.c}`);
+  console.log(`Total de usuarios en la base de datos: ${count.c}`);
   
-  console.log('\n✅ Usuarios de prueba creados exitosamente');
-  console.log('📄 Consulta el archivo USUARIOS_PRUEBA.md para más detalles');
+  console.log('\nOK: Usuarios de prueba creados exitosamente');
+  console.log('Consulta el archivo USUARIOS_PRUEBA.md para más detalles');
 
 } catch (error) {
-  console.error('❌ Error:', error);
+  console.error('ERROR:', error);
   process.exit(1);
 } finally {
   db.close();

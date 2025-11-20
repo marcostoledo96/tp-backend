@@ -21,24 +21,24 @@ const bloquearEscrituraEnVercel = (req, res, next) => {
   next();
 };
 
-// 📋 GET /api/roles/permisos/all - Listar todos los permisos disponibles
-// Yo: Esta ruta devuelve permisos agrupados por categoría para facilitar la UI de asignación.
+// GET /api/roles/permisos/all - Listar todos los permisos disponibles
+// Esta ruta devuelve permisos agrupados por categoría para facilitar la UI de asignación.
 router.get('/permisos/all', verificarAutenticacion, RoleController.listarPermisos);
 
-// 📋 GET /api/roles - Listar todos los roles
-// Yo: Solo usuarios con 'ver_roles' pueden ver los roles del sistema.
+// GET /api/roles - Listar todos los roles
+// Solo usuarios con 'ver_roles' pueden ver los roles del sistema.
 router.get('/', verificarAutenticacion, verificarPermiso('ver_roles'), RoleController.listarRoles);
 
-// 🔍 GET /api/roles/:id - Obtener un rol específico con sus permisos
+// GET /api/roles/:id - Obtener un rol específico con sus permisos
 router.get('/:id', verificarAutenticacion, verificarPermiso('ver_roles'), RoleController.obtenerRolPorId);
 
-// ➕ POST /api/roles - Crear un nuevo rol (BLOQUEADO EN VERCEL)
+// POST /api/roles - Crear un nuevo rol (BLOQUEADO EN VERCEL)
 router.post('/', bloquearEscrituraEnVercel, verificarAutenticacion, verificarPermiso('gestionar_roles'), RoleController.crearRol);
 
-// ✏️ PUT /api/roles/:id - Actualizar un rol (BLOQUEADO EN VERCEL)
+// PUT /api/roles/:id - Actualizar un rol (BLOQUEADO EN VERCEL)
 router.put('/:id', bloquearEscrituraEnVercel, verificarAutenticacion, verificarPermiso('gestionar_roles'), RoleController.actualizarRol);
 
-// 🗑️ DELETE /api/roles/:id - Eliminar un rol (BLOQUEADO EN VERCEL)
+// DELETE /api/roles/:id - Eliminar un rol (BLOQUEADO EN VERCEL)
 router.delete('/:id', bloquearEscrituraEnVercel, verificarAutenticacion, verificarPermiso('gestionar_roles'), RoleController.eliminarRol);
 
 module.exports = router;

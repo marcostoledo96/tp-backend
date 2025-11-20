@@ -1,20 +1,20 @@
 // Script para verificar el esquema de la base de datos
-// Yo: creo este script para comprobar que las tablas y datos existan correctamente
+// Comprueba que las tablas y datos existan correctamente
 
 const { getDB } = require('../models/database');
 
-console.log('🔍 Verificando esquema de base de datos...\n');
+console.log('Verificando esquema de base de datos...\n');
 
 try {
   const db = getDB();
   
   // Verificar tabla roles
-  console.log('📋 TABLA: roles');
+  console.log('TABLA: roles');
   const roles = db.prepare('SELECT * FROM roles').all();
   console.log(`   Total roles: ${roles.length}`);
   roles.forEach(r => console.log(`   - ${r.id}: ${r.nombre} (activo: ${r.activo})`));
   
-  console.log('\n📋 TABLA: permisos');
+  console.log('\nTABLA: permisos');
   const permisos = db.prepare('SELECT * FROM permisos ORDER BY categoria, nombre').all();
   console.log(`   Total permisos: ${permisos.length}`);
   const permisosPorCat = {};
@@ -27,7 +27,7 @@ try {
     permisosPorCat[cat].forEach(p => console.log(`     - ${p}`));
   });
   
-  console.log('\n📋 TABLA: roles_permisos');
+  console.log('\nTABLA: roles_permisos');
   const rolesPermisos = db.prepare('SELECT * FROM roles_permisos').all();
   console.log(`   Total asignaciones: ${rolesPermisos.length}`);
   
@@ -44,7 +44,7 @@ try {
     console.log(`     IDs: [${porRol[roleId].join(', ')}]`);
   });
   
-  console.log('\n📋 TABLA: usuarios (sample)');
+  console.log('\nTABLA: usuarios (sample)');
   const usuarios = db.prepare('SELECT id, username, nombre, role_id FROM usuarios LIMIT 5').all();
   console.log(`   Total usuarios (mostrando 5): ${usuarios.length}`);
   usuarios.forEach(u => {
@@ -53,9 +53,9 @@ try {
   });
   
   db.close();
-  console.log('\n✅ Verificación completada');
+  console.log('\nVerificación completada');
   
 } catch (error) {
-  console.error('❌ Error al verificar esquema:', error);
+  console.error('ERROR: Error al verificar esquema:', error);
   process.exit(1);
 }

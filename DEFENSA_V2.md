@@ -9,19 +9,268 @@
 
 ## ÍNDICE
 
-1. [Introducción al Proyecto](#1-introducción-al-proyecto)
-2. [Arquitectura del Backend](#2-arquitectura-del-backend)
-3. [Base de Datos y Relaciones](#3-base-de-datos-y-relaciones)
-4. [Sistema de Autenticación y Permisos](#4-sistema-de-autenticación-y-permisos)
-5. [CRUD de Productos](#5-crud-de-productos)
-6. [Flujo de Carrito y Compras](#6-flujo-de-carrito-y-compras)
-7. [Validaciones Críticas](#7-validaciones-críticas)
-8. [Casos de Uso y Demostración](#8-casos-de-uso-y-demostración)
-9. [Preguntas Frecuentes](#9-preguntas-frecuentes)
+1. [Organización del Proyecto](#1-organización-del-proyecto)
+2. [Introducción al Proyecto](#2-introducción-al-proyecto)
+3. [Arquitectura del Backend](#3-arquitectura-del-backend)
+4. [Base de Datos y Relaciones](#4-base-de-datos-y-relaciones)
+5. [Sistema de Autenticación y Permisos](#5-sistema-de-autenticación-y-permisos)
+6. [CRUD de Productos](#6-crud-de-productos)
+7. [Flujo de Carrito y Compras](#7-flujo-de-carrito-y-compras)
+8. [Validaciones Críticas](#8-validaciones-críticas)
+9. [Casos de Uso y Demostración](#9-casos-de-uso-y-demostración)
+10. [Preguntas Frecuentes](#10-preguntas-frecuentes)
 
 ---
 
-## 1. INTRODUCCIÓN AL PROYECTO
+## 1. ORGANIZACIÓN DEL PROYECTO
+
+### Estructura Completa de Carpetas y Archivos
+
+Esta es la organización del proyecto backend. Cada carpeta tiene una responsabilidad específica siguiendo el patrón MVC:
+
+```
+tp-final/
+├── 📁 controllers/          # Lógica de negocio (validaciones, orquestación)
+│   ├── AuthController.js         → Login, generación de JWT
+│   ├── CompraController.js        → Crear compras, listar ventas, actualizar estado
+│   ├── ProductoController.js      → CRUD completo de productos
+│   ├── RoleController.js          → CRUD de roles y permisos
+│   └── UsuarioController.js       → CRUD de usuarios, actualizar perfil
+│
+├── 📁 models/               # Acceso a datos (consultas SQL, transacciones)
+│   ├── CompraModel.js            → Queries de compras y detalles
+│   ├── database.js               → Conexión a SQLite, getDB()
+│   ├── PermisoModel.js           → Queries de permisos por categoría
+│   ├── ProductoModel.js          → Queries de productos, descontarStock()
+│   ├── RoleModel.js              → Queries de roles con permisos
+│   └── UsuarioModel.js           → Queries de usuarios, validación login
+│
+├── 📁 routes/               # Definición de endpoints (rutas HTTP)
+│   ├── auth.js                   → POST /api/auth/login
+│   ├── compras.js                → POST, GET, PATCH /api/compras
+│   ├── index.js                  → Agrupa todas las rutas con prefijo /api
+│   ├── productos.js              → GET, POST, PUT, DELETE /api/productos
+│   ├── roles.js                  → GET, POST, PUT /api/roles
+│   └── usuarios.js               → GET, POST, PUT, PATCH /api/usuarios
+│
+├── 📁 middleware/           # Lógica que se ejecuta antes de controladores
+│   └── auth.js                   → verificarAutenticacion, verificarPermiso
+│
+├── 📁 db/                   # Base de datos y migraciones
+│   ├── sanpaholmes.db            → Base de datos SQLite (archivo binario)
+│   ├── sqlite-init.js            → Script inicial para crear tablas
+│   ├── apply-sqlite-migration.js → Aplicar migraciones SQL
+│   ├── init.js                   → Inicialización completa (tablas + datos)
+│   └── migrations/               → Archivos SQL de migraciones
+│       ├── add_detalles_pedido.sql
+│       ├── add_listo_field.sql
+│       ├── fix_comprobante_varchar_to_text.sql
+│       └── make_mesa_optional.sql
+│
+├── 📁 scripts/              # Scripts de mantenimiento y setup
+│   ├── setup-roles-permisos.js   → Crear roles y permisos del sistema
+│   ├── crear-usuarios-prueba.js  → Crear usuarios admin, vendedor, visitador
+│   └── verificar-esquema.js      → Verificar estructura de base de datos
+│
+├── 📁 autotests/            # Tests automatizados (Jest + Supertest)
+│   ├── auth.test.js              → Tests de login
+│   ├── compras.test.js           → Tests de creación de compras
+│   ├── compras-estado.test.js    → Tests de actualización de estado
+│   ├── compras-extra.test.js     → Tests de listado y estadísticas
+│   ├── perfil.test.js            → Tests de actualización de perfil
+│   ├── permisos.test.js          → Tests de control de permisos
+│   ├── productos.test.js         → Tests de CRUD productos
+│   └── usuarios-admin.test.js    → Tests de gestión de usuarios
+│
+├── 📁 public/               # Archivos estáticos servidos por Express
+│   ├── images/                   → Imágenes del sitio (logos, escudos)
+│   ├── uploads/                  → Comprobantes subidos por usuarios
+│   └── trebol-ico.ico            → Favicon
+│
+├── 📁 src/                  # Frontend React (NO parte de esta defensa)
+│   ├── views/                    → Componentes React
+│   ├── controllers/              → Contexts (AuthContext, CartContext)
+│   ├── types/                    → TypeScript types
+│   └── main.tsx                  → Entry point de Vite
+│
+├── 📁 _legacy/              # Archivos obsoletos (backup seguro)
+│   ├── db-postgres/              → Código viejo de PostgreSQL
+│   ├── debug/                    → Scripts de debug temporal
+│   ├── scripts-debug/            → Scripts de verificación obsoletos
+│   ├── scripts-migrations/       → Migraciones ya aplicadas
+│   ├── components-old/           → Componentes React duplicados
+│   ├── misc/                     → Archivos varios obsoletos
+│   └── dist-vite-build/          → Build de Vite (duplicado de public/)
+│
+├── 📄 server.js             # Entry point del backend (servidor Express)
+├── 📄 package.json          # Dependencias y scripts npm
+├── 📄 .env                  # Variables de entorno (JWT_SECRET, etc.)
+├── 📄 DEFENSA_V2.md         # Este documento (defensa oral)
+├── 📄 LIMPIEZA_RESUMEN.md   # Resumen de archivos movidos a _legacy/
+└── 📄 README.md             # Documentación general del proyecto
+```
+
+---
+
+### Guía Rápida: "¿Dónde encuentro...?"
+
+#### Si el profesor pregunta por **rutas/endpoints**:
+```bash
+📂 routes/
+   → auth.js        # Login
+   → productos.js   # CRUD productos
+   → compras.js     # Crear/listar compras
+   → usuarios.js    # CRUD usuarios
+   → roles.js       # CRUD roles
+```
+
+#### Si pregunta por **lógica de negocio**:
+```bash
+📂 controllers/
+   → AuthController.js      # Validación de login, JWT
+   → ProductoController.js  # Validación precio/stock
+   → CompraController.js    # Validación stock, recálculo total
+```
+
+#### Si pregunta por **consultas SQL**:
+```bash
+📂 models/
+   → ProductoModel.js   # descontarStock(), obtenerProductos()
+   → CompraModel.js     # crearCompra() con transacción
+   → UsuarioModel.js    # obtenerUsuarioPorUsername()
+```
+
+#### Si pregunta por **autenticación/seguridad**:
+```bash
+📂 middleware/auth.js
+   → verificarAutenticacion()  # Valida JWT
+   → verificarPermiso()        # Valida permisos específicos
+```
+
+#### Si pregunta por **base de datos**:
+```bash
+📂 db/
+   → sanpaholmes.db           # Archivo SQLite (datos reales)
+   → sqlite-init.js           # Script de creación inicial
+   → migrations/              # Cambios históricos en la BD
+```
+
+#### Si pregunta por **tests**:
+```bash
+📂 autotests/
+   → productos.test.js      # CRUD productos
+   → compras.test.js        # Flujo de compra
+   → auth.test.js           # Login
+   → permisos.test.js       # Control de acceso
+```
+
+---
+
+### Archivos Clave del Backend
+
+| Archivo | Ubicación | Descripción |
+|---------|-----------|-------------|
+| **server.js** | Raíz | Entry point, configuración de Express, middlewares globales |
+| **database.js** | models/ | Conexión a SQLite, función getDB() |
+| **auth.js** | middleware/ | Middlewares de autenticación y permisos |
+| **AuthController.js** | controllers/ | Login, generación de JWT con permisos |
+| **CompraController.js** | controllers/ | Validación de stock, recálculo de total, creación de compra |
+| **ProductoController.js** | controllers/ | CRUD productos con validaciones de precio/stock |
+| **ProductoModel.js** | models/ | descontarStock() con control de concurrencia |
+| **CompraModel.js** | models/ | crearCompra() con transacción SQL |
+
+---
+
+### Flujo de una Request HTTP
+
+Ejemplo: `POST /api/productos` (Crear producto)
+
+```
+1. server.js recibe la request
+   ↓
+2. routes/index.js → Prefijo /api
+   ↓
+3. routes/productos.js → Busca POST /
+   ↓
+4. middleware/auth.js → verificarAutenticacion()
+   - Valida token JWT
+   - Guarda usuario en req.usuario
+   ↓
+5. middleware/auth.js → verificarPermiso('gestionar_productos')
+   - Verifica que req.usuario.permisos incluya el permiso
+   ↓
+6. controllers/ProductoController.js → crearProducto()
+   - Valida datos (precio >= 0, stock >= 0)
+   - Llama al modelo
+   ↓
+7. models/ProductoModel.js → crearProducto()
+   - Ejecuta INSERT en SQLite
+   - Devuelve producto creado
+   ↓
+8. Controlador devuelve Response 201 al cliente
+```
+
+---
+
+### Scripts de Mantenimiento
+
+#### Setup inicial (ejecutar en orden):
+
+```bash
+# 1. Crear estructura de base de datos
+node db/sqlite-init.js
+
+# 2. Crear roles y permisos del sistema
+node scripts/setup-roles-permisos.js
+
+# 3. Crear usuarios de prueba (admin, vendedor, visitador)
+node scripts/crear-usuarios-prueba.js
+
+# 4. Verificar que todo se creó correctamente
+node scripts/verificar-esquema.js
+```
+
+#### Ejecutar tests:
+
+```bash
+# Todos los tests
+npm test
+
+# Tests específicos
+npm test -- productos.test.js
+npm test -- compras.test.js
+```
+
+---
+
+### Archivos de Configuración
+
+| Archivo | Propósito |
+|---------|-----------|
+| **package.json** | Dependencias npm, scripts de desarrollo |
+| **.env** | Variables de entorno (JWT_SECRET, PORT) |
+| **vite.config.ts** | Configuración de Vite (frontend) |
+| **tsconfig.json** | Configuración de TypeScript (frontend) |
+| **jest.config.js** | Configuración de tests (implícito) |
+| **.gitignore** | Archivos que no se suben a Git |
+
+---
+
+### Carpeta `_legacy/` (NO revisar en defensa)
+
+Esta carpeta contiene **código obsoleto** que se movió para mantener el proyecto limpio:
+
+- **db-postgres/**: Código viejo cuando usaba PostgreSQL
+- **debug/**: Scripts temporales de debugging
+- **scripts-debug/**: Scripts de verificación que ya no se usan
+- **scripts-migrations/**: Migraciones ya aplicadas
+- **dist-vite-build/**: Build de Vite (duplicado de public/)
+
+**Importante**: Estos archivos NO forman parte del proyecto actual, son solo backup.
+
+---
+
+## 2. INTRODUCCIÓN AL PROYECTO
 
 ### ¿Qué implementé?
 
@@ -47,7 +296,7 @@ Desarrollé un sistema completo de carrito de compras con gestión avanzada de u
 
 ---
 
-## 2. ARQUITECTURA DEL BACKEND
+## 3. ARQUITECTURA DEL BACKEND
 
 ### Patrón MVC (Model-View-Controller)
 
@@ -99,7 +348,7 @@ Mi proyecto separa claramente las responsabilidades en tres capas:
 
 ---
 
-## 3. BASE DE DATOS Y RELACIONES
+## 4. BASE DE DATOS Y RELACIONES
 
 ### Esquema de Tablas Implementado
 
@@ -182,7 +431,7 @@ detalles_compra
 
 ---
 
-## 4. SISTEMA DE AUTENTICACIÓN Y PERMISOS
+## 5. SISTEMA DE AUTENTICACIÓN Y PERMISOS
 
 ### A. Login y Generación de Token JWT
 
@@ -453,7 +702,7 @@ router.post('/',
 
 ---
 
-## 5. CRUD DE PRODUCTOS
+## 6. CRUD DE PRODUCTOS
 
 ### A. Modelo de Productos
 
@@ -757,7 +1006,7 @@ module.exports = router;
 
 ---
 
-## 6. FLUJO DE CARRITO Y COMPRAS
+## 7. FLUJO DE CARRITO Y COMPRAS
 
 ### A. Modelo de Compras
 
@@ -1110,7 +1359,7 @@ module.exports = router;
 
 ---
 
-## 7. VALIDACIONES CRÍTICAS
+## 8. VALIDACIONES CRÍTICAS
 
 ### A. Validación de Precio y Stock
 
@@ -1232,7 +1481,7 @@ Usuario A:                          Usuario B:
 
 ---
 
-## 8. CASOS DE USO Y DEMOSTRACIÓN
+## 9. CASOS DE USO Y DEMOSTRACIÓN
 
 ### Caso 1: Usuario Admin crea un producto
 
@@ -1338,7 +1587,7 @@ MEJORA PENDIENTE: Envolver descuento de stock en la misma transacción
 
 ---
 
-## 9. PREGUNTAS FRECUENTES
+## 10. PREGUNTAS FRECUENTES
 
 ### P1: ¿Por qué elegiste SQLite y no PostgreSQL o MySQL?
 

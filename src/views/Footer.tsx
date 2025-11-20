@@ -72,7 +72,7 @@ export function Footer() {
               </div>
             </div>
             
-            {/* Yo: moví el acceso al panel de administración al header (Navbar). Aquí dejo información estática. */}
+            {/* Acceso al panel de administración se encuentra en el header (Navbar) */}
           </div>
 
           {/* Columna 3: Case Status */}

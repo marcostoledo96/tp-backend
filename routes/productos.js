@@ -21,26 +21,26 @@ const bloquearEscrituraEnVercel = (req, res, next) => {
   next();
 };
 
-// 📋 GET /api/productos - Listar todos los productos activos (público)
+// GET /api/productos - Listar todos los productos activos (público)
 router.get('/', ProductoController.listarProductos);
 
-// 🔐 GET /api/productos/admin/all - Listar TODOS los productos (requiere autenticación)
+// GET /api/productos/admin/all - Listar TODOS los productos (requiere autenticación)
 router.get('/admin/all', verificarAutenticacion, ProductoController.listarTodosLosProductos);
 
-// 🔍 GET /api/productos/:id - Obtener un producto específico
+// GET /api/productos/:id - Obtener un producto específico
 router.get('/:id', ProductoController.obtenerProductoPorId);
 
-// ➕ POST /api/productos - Crear un nuevo producto (BLOQUEADO EN VERCEL)
-// Yo: Solo usuarios con 'gestionar_productos' pueden crear productos.
+// POST /api/productos - Crear un nuevo producto (BLOQUEADO EN VERCEL)
+// Solo usuarios con 'gestionar_productos' pueden crear productos.
 // Esto previene que cualquiera agregue items al menú.
 router.post('/', bloquearEscrituraEnVercel, verificarAutenticacion, verificarPermiso('gestionar_productos'), ProductoController.crearProducto);
 
-// ✏️ PUT /api/productos/:id - Actualizar un producto (BLOQUEADO EN VERCEL)
-// Yo: Control de permisos para evitar modificaciones no autorizadas de precios/stock.
+// PUT /api/productos/:id - Actualizar un producto (BLOQUEADO EN VERCEL)
+// Control de permisos para evitar modificaciones no autorizadas de precios/stock.
 router.put('/:id', bloquearEscrituraEnVercel, verificarAutenticacion, verificarPermiso('gestionar_productos'), ProductoController.actualizarProducto);
 
-// 🗑️ DELETE /api/productos/:id - Eliminar un producto (BLOQUEADO EN VERCEL)
-// Yo: Solo admin/vendedor pueden dar de baja productos.
+// DELETE /api/productos/:id - Eliminar un producto (BLOQUEADO EN VERCEL)
+// Solo admin/vendedor pueden dar de baja productos.
 router.delete('/:id', bloquearEscrituraEnVercel, verificarAutenticacion, verificarPermiso('gestionar_productos'), ProductoController.eliminarProducto);
 
 module.exports = router;

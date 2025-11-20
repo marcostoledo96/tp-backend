@@ -20,9 +20,9 @@ if (IS_VERCEL) {
   if (!fs.existsSync(DB_PATH) && fs.existsSync(SOURCE_DB)) {
     try {
       fs.copyFileSync(SOURCE_DB, DB_PATH);
-      console.log('✅ DB copiada a /tmp para Vercel');
+      console.log('OK: DB copiada a /tmp para Vercel');
     } catch (error) {
-      console.error('❌ Error al copiar DB:', error);
+      console.error('ERROR: Error al copiar DB:', error);
     }
   }
 }
@@ -40,7 +40,7 @@ function getDB() {
     db.pragma('journal_mode = WAL');
     return db;
   } catch (error) {
-    console.error('❌ Error al conectar DB:', error);
+    console.error('ERROR: Error al conectar DB:', error);
     throw error;
   }
 }

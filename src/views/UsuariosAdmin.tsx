@@ -182,7 +182,7 @@ export function UsuariosAdmin() {
         return;
       }
 
-      // Yo: removí la restricción de longitud mínima de contraseña (no se requieren requisitos)
+      // No se requiere validación de longitud mínima de contraseña
     }
 
     if (editando && (!formData.username.trim() || !formData.nombre.trim() || !formData.role_id)) {
@@ -236,7 +236,7 @@ export function UsuariosAdmin() {
       return;
     }
 
-    // Yo: removí la validación de longitud mínima en el cambio de contraseña
+    // No se aplica validación de longitud mínima en el cambio de contraseña
 
     try {
       const res = await fetch(`${API_URL}/api/usuarios/${cambiandoPassword}/password`, {

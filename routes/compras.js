@@ -42,7 +42,7 @@ const bloquearComprasEnVercel = (req, res, next) => {
   next();
 };
 
-// 🛍️ POST /api/compras - Crear una nueva compra (BLOQUEADO EN VERCEL)
+// POST /api/compras - Crear una nueva compra (BLOQUEADO EN VERCEL)
 // Requiere autenticación y permiso para crear compras.
 router.post(
   '/',
@@ -53,24 +53,24 @@ router.post(
   CompraController.crearCompra
 );
 
-// 📋 GET /api/compras - Listar todas las compras (requiere autenticación y permisos)
-// Yo: Solo usuarios con permiso 'ver_compras' pueden ver el historial de ventas.
+// GET /api/compras - Listar todas las compras (requiere autenticación y permisos)
+// Solo usuarios con permiso 'ver_compras' pueden ver el historial de ventas.
 // Esto protege información sensible de las transacciones.
 router.get('/', verificarAutenticacion, verificarPermiso('ver_compras'), CompraController.listarCompras);
 
-// 📊 GET /api/compras/estadisticas/ventas - Obtener estadísticas (requiere autenticación y permisos)
+// GET /api/compras/estadisticas/ventas - Obtener estadísticas (requiere autenticación y permisos)
 router.get('/estadisticas/ventas', verificarAutenticacion, verificarPermiso('ver_compras'), CompraController.obtenerEstadisticas);
 
-// 🔍 GET /api/compras/:id - Obtener detalle de una compra (requiere autenticación y permisos)
+// GET /api/compras/:id - Obtener detalle de una compra (requiere autenticación y permisos)
 router.get('/:id', verificarAutenticacion, verificarPermiso('ver_compras'), CompraController.obtenerCompraPorId);
 
-// 🔄 PATCH /api/compras/:id/estado - Actualizar estado de una compra (requiere autenticación y permisos)
-// Yo: Solo usuarios con 'editar_compras' pueden marcar pedidos como listos/entregados.
+// PATCH /api/compras/:id/estado - Actualizar estado de una compra (requiere autenticación y permisos)
+// Solo usuarios con 'editar_compras' pueden marcar pedidos como listos/entregados.
 // Esto es crítico para el control del flujo de trabajo en cocina.
 router.patch('/:id/estado', verificarAutenticacion, verificarPermiso('editar_compras'), CompraController.actualizarEstadoCompra);
 
-// 🗑️ DELETE /api/compras/:id - Eliminar una compra (requiere autenticación y permisos)
-// Yo: Solo admin puede eliminar compras para mantener auditoría.
+// DELETE /api/compras/:id - Eliminar una compra (requiere autenticación y permisos)
+// Solo admin puede eliminar compras para mantener auditoría.
 router.delete('/:id', verificarAutenticacion, verificarPermiso('eliminar_compras'), CompraController.eliminarCompra);
 
 module.exports = router;

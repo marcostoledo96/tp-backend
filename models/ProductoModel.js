@@ -224,7 +224,7 @@ function actualizarStock(id, nuevoStock) {
 
 /**
  * Descontar stock de un producto (para cuando se confirma una compra)
- * Yo: Esta función es CRÍTICA para el control de inventario. Implementé validación
+ * Esta función es CRÍTICA para el control de inventario. Implementa validación
  * atómica con la cláusula WHERE stock >= ? para garantizar que nunca se vuelva
  * negativo el stock, incluso con compras simultáneas.
  * @param {number} id - ID del producto
@@ -234,8 +234,8 @@ function actualizarStock(id, nuevoStock) {
 function descontarStock(id, cantidad) {
   const db = getDB();
   
-  // Yo: Primero verifico que hay stock suficiente antes de intentar descontar.
-  // Esto me da un mensaje de error más claro para el usuario.
+  // Primero verifico que hay stock suficiente antes de intentar descontar.
+  // Esto permite dar un mensaje de error más claro para el usuario.
   const producto = db.prepare('SELECT stock FROM productos WHERE id = ?').get(id);
   
   if (!producto) {
@@ -248,11 +248,11 @@ function descontarStock(id, cantidad) {
     throw new Error(`Stock insuficiente para producto ID ${id}. Disponible: ${producto.stock}, Solicitado: ${cantidad}`);
   }
   
-  // Yo: La cláusula WHERE stock >= ? es FUNDAMENTAL para la atomicidad.
+  // La cláusula WHERE stock >= ? es FUNDAMENTAL para la atomicidad.
   // SQLite garantiza que esta operación es indivisible. Si dos usuarios
   // intentan comprar simultáneamente el último producto:
-  //   - El primero ejecuta: UPDATE ... WHERE stock >= 1 ✅ (stock pasa a 0)
-  //   - El segundo ejecuta: UPDATE ... WHERE stock >= 1 ❌ (result.changes = 0, falla)
+  //   - El primero ejecuta: UPDATE ... WHERE stock >= 1 (OK, stock pasa a 0)
+  //   - El segundo ejecuta: UPDATE ... WHERE stock >= 1 (FALLA, result.changes = 0)
   // Esto evita condiciones de carrera sin necesidad de locks complejos.
   const stmt = db.prepare(`
     UPDATE productos

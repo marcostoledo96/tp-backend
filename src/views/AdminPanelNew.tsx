@@ -402,10 +402,10 @@ export function AdminPanelNew() {
     }
   };
 
-  // 🗑️ Función para ELIMINAR DEFINITIVAMENTE un producto de la base de datos
+  // Función para ELIMINAR DEFINITIVAMENTE un producto de la base de datos
   const handlePermanentDelete = async (id: number) => {
     // Confirmación doble para evitar eliminar por error
-    if (!confirm('⚠️ ¿ELIMINAR DEFINITIVAMENTE este producto de la base de datos?\n\nEsta acción NO SE PUEDE DESHACER.\n\nEl producto será borrado permanentemente.')) {
+    if (!confirm('ADVERTENCIA: ¿ELIMINAR DEFINITIVAMENTE este producto de la base de datos?\n\nEsta acción NO SE PUEDE DESHACER.\n\nEl producto será borrado permanentemente.')) {
       return;
     }
     
@@ -426,7 +426,7 @@ export function AdminPanelNew() {
         throw new Error(data.mensaje || 'Error al eliminar producto');
       }
       
-      toast.success('✅ Producto eliminado definitivamente de la base de datos');
+      toast.success('Producto eliminado definitivamente de la base de datos');
       
       // Cerrar el modal y refrescar la lista
       setShowProductForm(false);
@@ -825,7 +825,7 @@ export function AdminPanelNew() {
           <p className="text-gray-400 text-lg">Gestión de productos y visualización de ventas</p>
           
           {/* Debug: Mostrar rol actual en consola */}
-          {console.log('👤 AdminPanel - User role:', user?.role, 'Full user:', user)}
+          {console.log('DEBUG AdminPanel - User role:', user?.role, 'Full user:', user)}
           
           {/* Botón para acceder a gestión de usuarios */}
           {user?.role === 'admin' && (
@@ -1092,13 +1092,13 @@ export function AdminPanelNew() {
                         </Badge>
                         <div className="flex flex-col gap-1 mt-2">
                           <Badge className={purchase.abonado ? 'bg-green-600' : 'bg-gray-600'}>
-                            {purchase.abonado ? '✓ Abonado' : 'Pendiente de pago'}
+                            {purchase.abonado ? 'Abonado' : 'Pendiente de pago'}
                           </Badge>
                           <Badge className={purchase.listo ? 'bg-blue-600' : 'bg-gray-600'}>
-                            {purchase.listo ? '✓ Listo' : 'En preparación'}
+                            {purchase.listo ? 'Listo' : 'En preparación'}
                           </Badge>
                           <Badge className={purchase.entregado ? 'bg-green-600' : 'bg-orange-600'}>
-                            {purchase.entregado ? '✓✓ Entregado' : 'Por entregar'}
+                            {purchase.entregado ? 'Entregado' : 'Por entregar'}
                           </Badge>
                         </div>
                       </div>
@@ -1620,7 +1620,7 @@ export function AdminPanelNew() {
                     />
                     
                     <p className="text-xs text-gray-400">
-                      💡 <strong>Cómo subir imágenes:</strong><br/>
+                      <strong>Cómo subir imágenes:</strong><br/>
                       1. Ve a <a href="https://imgur.com/upload" target="_blank" rel="noopener noreferrer" className="text-[#fbbf24] hover:underline">imgur.com/upload</a><br/>
                       2. Sube tu imagen (sin necesidad de cuenta)<br/>
                       3. Clic derecho en la imagen → "Copiar dirección de imagen"<br/>
@@ -1683,7 +1683,7 @@ export function AdminPanelNew() {
                     </button>
                   </div>
 
-                  {/* 🗑️ Botón de eliminar definitivamente (solo al editar) */}
+                  {/* Botón de eliminar definitivamente (solo al editar) */}
                   {editingProduct && (
                     <button
                       type="button"
@@ -1691,7 +1691,7 @@ export function AdminPanelNew() {
                       className="w-full bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white py-3 rounded-xl font-semibold transition-all flex items-center justify-center gap-2 border-2 border-red-500"
                     >
                       <Trash2 className="w-5 h-5" />
-                      🗑️ Eliminar Definitivamente
+                      Eliminar Definitivamente
                     </button>
                   )}
                 </div>

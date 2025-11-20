@@ -13,7 +13,7 @@ function verificarAutenticacion(req, res, next) {
     const authHeader = req.headers.authorization;
 
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      console.log('❌ Auth: No se proporcionó token o formato incorrecto');
+      console.log('ERROR Auth: No se proporcionó token o formato incorrecto');
       return res.status(401).json({
         success: false,
         mensaje: 'No se proporcionó token de autenticación'
@@ -31,7 +31,7 @@ function verificarAutenticacion(req, res, next) {
     next(); // Continuamos con la siguiente función
 
   } catch (error) {
-    console.error('❌ Auth error:', error.name, error.message);
+    console.error('ERROR Auth:', error.name, error.message);
     
     if (error.name === 'TokenExpiredError') {
       return res.status(401).json({

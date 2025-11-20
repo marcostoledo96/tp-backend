@@ -18,9 +18,9 @@ if (IS_VERCEL) {
   try {
     const db = getDB();
     db.close();
-    console.log('✅ DB inicializada correctamente en Vercel');
+    console.log('OK: DB inicializada correctamente en Vercel');
   } catch (error) {
-    console.error('❌ Error al inicializar DB:', error);
+    console.error('ERROR: Error al inicializar DB:', error);
   }
 }
 
@@ -66,11 +66,11 @@ app.use((err, req, res, next) => {
 const PORT = process.env.PORT || 3000;
 if (process.env.NODE_ENV !== 'test') {
   app.listen(PORT, () => {
-    console.log(`\n🚀 Servidor corriendo en http://localhost:${PORT}`);
-    console.log(`🏗️  Arquitectura: MVC (Modelo-Vista-Controlador)`);
-    console.log(`📋 API Health: http://localhost:${PORT}/api/health`);
-    console.log(`🛍️ API Productos: http://localhost:${PORT}/api/productos`);
-    console.log(`🛒 API Compras: http://localhost:${PORT}/api/compras`);
+    console.log(`\nServidor corriendo en http://localhost:${PORT}`);
+    console.log(`Arquitectura: MVC (Modelo-Vista-Controlador)`);
+    console.log(`API Health: http://localhost:${PORT}/api/health`);
+    console.log(`API Productos: http://localhost:${PORT}/api/productos`);
+    console.log(`API Compras: http://localhost:${PORT}/api/compras`);
     console.log(`🔐 API Auth: http://localhost:${PORT}/api/auth/login\n`);
   });
 }

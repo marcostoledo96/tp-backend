@@ -6,7 +6,7 @@ const { getDB } = require('./database');
 
 /**
  * Obtener todos los roles
- * Yo: modifico para incluir los permisos de cada rol en la lista
+ * Incluye los permisos de cada rol en la lista.
  * @returns {Array} Lista de roles con sus permisos
  */
 function obtenerRoles() {
@@ -18,7 +18,7 @@ function obtenerRoles() {
     ORDER BY nombre
   `).all();
   
-  // Yo: para cada rol, obtengo sus permisos
+  // Para cada rol, obtengo sus permisos
   const rolesConPermisos = roles.map(rol => {
     const permisos = db.prepare(`
       SELECT p.id, p.nombre, p.descripcion, p.categoria
@@ -197,7 +197,7 @@ function actualizarRol(id, datos, permisos = null) {
     }
     
     db.prepare('COMMIT').run();
-    console.log('✅ Transacción COMMIT exitosa');
+    console.log('OK: Transacción COMMIT exitosa');
     db.close();
     
     return {
@@ -207,7 +207,7 @@ function actualizarRol(id, datos, permisos = null) {
     };
     
   } catch (error) {
-    console.error('❌ Error en actualizarRol, haciendo ROLLBACK:', error);
+    console.error('ERROR en actualizarRol, haciendo ROLLBACK:', error);
     db.prepare('ROLLBACK').run();
     db.close();
     throw error;

@@ -5,8 +5,8 @@ import { API_URL } from '../config/api';
 
 /**
  * RolesAdmin
- * Yo: componente que permite gestionar roles Y usuarios en una misma vista.
- *     Incluye pestañas para cambiar entre ambas secciones.
+ * Componente que permite gestionar roles Y usuarios en una misma vista.
+ * Incluye pestañas para cambiar entre ambas secciones.
  */
 export function RolesAdmin() {
   // Tab activo ('roles' o 'usuarios')
@@ -127,7 +127,7 @@ export function RolesAdmin() {
       setShowForm(false);
       fetchData();
     } catch (error: any) {
-      console.error('❌ Error al guardar:', error);
+      console.error('Error al guardar:', error);
       alert(error.message || 'Error');
     }
   }

@@ -2,7 +2,7 @@
 
 Yo: Este proyecto es mi Trabajo Final Integrador para la materia Desarrollo de Software Backend. El objetivo principal es ampliar un sistema de gestión de usuarios, roles y permisos, incorporando un módulo completo de carrito de compras.
 
-## 📋 Descripción General
+##  Descripción General
 
 El sistema permite:
 - **CRUD completo de productos** con validaciones de stock y precio
@@ -11,7 +11,7 @@ El sistema permite:
 - **Sistema robusto de roles y permisos** para controlar el acceso a cada funcionalidad
 - **Panel de administración** para gestionar usuarios, roles, permisos y productos
 
-## 🏗️ Arquitectura
+##  Arquitectura
 
 El proyecto sigue el patrón **MVC (Model-View-Controller)**:
 
@@ -31,7 +31,7 @@ El proyecto sigue el patrón **MVC (Model-View-Controller)**:
 └── components/      → Componentes reutilizables (UI, PoliceButton)
 ```
 
-## 🗄️ Base de Datos
+##  Base de Datos
 
 ### Tablas Principales
 
@@ -66,22 +66,22 @@ El proyecto sigue el patrón **MVC (Model-View-Controller)**:
 - **Rol → Permisos** (N:M): Un rol puede tener muchos permisos, un permiso puede estar en muchos roles
 - **Compra → Detalles** (1:N): Una compra tiene muchos detalles (productos comprados)
 
-## 🔐 Sistema de Permisos
+##  Sistema de Permisos
 
 ### Permisos Disponibles
 
-| Permiso | Descripción | Categoría |
-|---------|-------------|-----------|
-| `ver_productos` | Ver listado de productos | productos |
-| `gestionar_productos` | Crear, editar, eliminar productos | productos |
-| `ver_compras` | Ver historial de compras | compras |
-| `crear_compra` | Realizar nuevas compras | compras |
-| `editar_compras` | Actualizar estados de compras | compras |
-| `eliminar_compras` | Eliminar compras | compras |
-| `ver_usuarios` | Ver listado de usuarios | usuarios |
-| `gestionar_usuarios` | Crear, editar, eliminar usuarios | usuarios |
-| `ver_roles` | Ver roles y permisos | roles |
-| `gestionar_roles` | Crear, editar roles y asignar permisos | roles |
+| Permiso               | Descripción                            | Categoría |
+|-----------------------|----------------------------------------|-----------|
+| `ver_productos`       | Ver listado de productos               | productos |
+| `gestionar_productos` | Crear, editar, eliminar productos      | productos |
+| `ver_compras`         | Ver historial de compras               | compras   |
+| `crear_compra`        | Realizar nuevas compras                | compras   |
+| `editar_compras`      | Actualizar estados de compras          | compras   |
+| `eliminar_compras`    | Eliminar compras                       | compras   |
+| `ver_usuarios`        | Ver listado de usuarios                | usuarios  |
+| `gestionar_usuarios`  | Crear, editar, eliminar usuarios       | usuarios  |
+| `ver_roles`           | Ver roles y permisos                   | roles     |
+| `gestionar_roles`     | Crear, editar roles y asignar permisos | roles     |
 
 ### Roles Predefinidos
 
@@ -102,7 +102,7 @@ El proyecto sigue el patrón **MVC (Model-View-Controller)**:
 
 Yo: Implementé el rol "comprador" para cumplir con el requisito de que solo usuarios registrados puedan comprar.
 
-## 🛡️ Middleware de Autenticación
+##  Middleware de Autenticación
 
 ### `verificarAutenticacion`
 1. Extrae el token JWT del header `Authorization: Bearer <token>`
@@ -172,23 +172,23 @@ for (const item of productos) {
 - Se devuelve el `numero_orden` y el `id` de la compra
 - El frontend limpia el carrito y muestra confirmación
 
-## 🔧 Validaciones Implementadas
+##  Validaciones Implementadas
 
 ### Productos
-- ✅ Precio no puede ser negativo
-- ✅ Stock no puede ser negativo
-- ✅ Nombre es obligatorio
+-  Precio no puede ser negativo
+-  Stock no puede ser negativo
+-  Nombre es obligatorio
 
 ### Compras
-- ✅ Stock suficiente antes de crear compra
-- ✅ Total recalculado con precios de BD (evita manipulación)
-- ✅ Descuento atómico de stock con `WHERE stock >= ?`
-- ✅ Método de pago válido (`efectivo` o `transferencia`)
+-  Stock suficiente antes de crear compra
+-  Total recalculado con precios de BD (evita manipulación)
+-  Descuento atómico de stock con `WHERE stock >= ?`
+-  Método de pago válido (`efectivo` o `transferencia`)
 
 ### Usuarios
-- ✅ Username único
-- ✅ Role_id válido (debe existir en tabla `roles`)
-- ✅ **Sin requisitos mínimos de contraseña** (según consigna del TP)
+-  Username único
+-  Role_id válido (debe existir en tabla `roles`)
+-  **Sin requisitos mínimos de contraseña** (según consigna del TP)
 
 ## 📁 Migraciones
 
@@ -205,7 +205,7 @@ Yo: Creé esta migración para agregar el sistema completo de roles y permisos a
 node db/apply-sqlite-migration.js 001_add_roles_permisos_system.sql
 ```
 
-## 🚀 Instalación y Ejecución
+##  Instalación y Ejecución
 
 ### Requisitos
 - Node.js v18+
@@ -243,7 +243,7 @@ npm run dev
 ```
 Frontend corre en `http://localhost:5173`
 
-## 🧪 Verificación Manual
+##  Verificación Manual
 
 ### 1. Login y obtención de token
 ```powershell
@@ -308,17 +308,7 @@ curl -X POST http://localhost:3000/api/compras `
 curl http://localhost:3000/api/productos/1
 ```
 
-## 📊 Criterios de Evaluación del TP
-
-| Criterio | Ponderación | Estado |
-|----------|-------------|--------|
-| Tablas y relaciones correctas | 25% | ✅ 100% |
-| CRUD de productos funcional y validado | 25% | ✅ 100% |
-| Flujo de carrito y compras implementado | 25% | ✅ 100% |
-| Sistema de permisos integrado | 15% | ✅ 100% |
-| README y presentación completa | 10% | ✅ 100% |
-
-## 📝 Notas de Implementación
+##  Notas de Implementación
 
 ### Decisiones Técnicas
 
@@ -337,7 +327,7 @@ Yo: **Nunca confiar en el cliente**. Las validaciones frontend son UX, las del b
 **5. ¿Cómo manejas concurrencia en el descuento de stock?**
 Yo: La cláusula `WHERE stock >= ?` en el UPDATE garantiza atomicidad. Si dos usuarios compran simultáneamente el último producto, solo una transacción tendrá éxito (`result.changes = 1`), la otra fallará (`result.changes = 0`).
 
-## 🎓 Para la Defensa
+##  Para la Defensa
 
 ### Puntos Clave a Mencionar
 
@@ -369,7 +359,7 @@ sqlite3 db/sanpaholmes.db "SELECT COUNT(*) FROM roles;"
 sqlite3 db/sanpaholmes.db "SELECT COUNT(*) FROM permisos;"
 ```
 
-## 📞 Soporte
+##  Soporte
 
 Si tenés dudas o problemas:
 1. Revisá los logs de consola (`console.log` en backend, DevTools en frontend)

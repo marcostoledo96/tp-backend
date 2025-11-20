@@ -111,8 +111,8 @@ async function actualizarRol(req, res) {
     const { id } = req.params;
     const { nombre, descripcion, activo, permisos } = req.body;
     
-    // Yo: agrego logs para debug
-    console.log('📥 Datos recibidos en actualizarRol:');
+    // Logs para debug
+    console.log('Datos recibidos en actualizarRol:');
     console.log('  - ID:', id);
     console.log('  - Nombre:', nombre);
     console.log('  - Descripción:', descripcion);

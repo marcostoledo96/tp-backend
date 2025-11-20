@@ -125,9 +125,8 @@ class UsuarioController {
       db = getDB();
 
       // Validaciones
-      // Yo: mantengo que el administrador debe enviar username, password, nombre y role_id,
-      // pero quité la restricción de longitud mínima de la contraseña porque se pidió
-      // "sin requerimientos de contraseña".
+      // El administrador debe enviar username, password, nombre y role_id.
+      // No se aplica restricción de longitud mínima a la contraseña.
       if (!username || !password || !nombre || !role_id) {
         return res.status(400).json({
           success: false,
@@ -142,7 +141,7 @@ class UsuarioController {
         });
       }
 
-      // Yo: no aplico validación de longitud mínima a la contraseña.
+      // No se aplica validación de longitud mínima a la contraseña.
 
       // Verificar que el username no exista
       const existente = db.prepare('SELECT id FROM usuarios WHERE username = ?').get(username);
@@ -316,7 +315,7 @@ class UsuarioController {
         });
       }
 
-      // Yo: no aplico validación de longitud mínima a la nueva contraseña.
+      // No se aplica validación de longitud mínima a la nueva contraseña.
 
       // Verificar que el usuario existe
       const usuario = db.prepare('SELECT id FROM usuarios WHERE id = ?').get(id);

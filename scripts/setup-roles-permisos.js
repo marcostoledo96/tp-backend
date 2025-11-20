@@ -14,7 +14,7 @@ const db = new Database(DB_PATH);
 
 try {
   // 1. Crear tabla de roles
-  console.log('\n1️⃣ Creando tabla roles...');
+  console.log('\n1. Creando tabla roles...');
   db.exec(`
     CREATE TABLE IF NOT EXISTS roles (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -24,10 +24,10 @@ try {
       creado_en DATETIME DEFAULT CURRENT_TIMESTAMP
     );
   `);
-  console.log('✅ Tabla roles creada');
+  console.log('OK: Tabla roles creada');
 
   // 2. Crear tabla de permisos
-  console.log('\n2️⃣ Creando tabla permisos...');
+  console.log('\n2. Creando tabla permisos...');
   db.exec(`
     CREATE TABLE IF NOT EXISTS permisos (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -37,10 +37,10 @@ try {
       creado_en DATETIME DEFAULT CURRENT_TIMESTAMP
     );
   `);
-  console.log('✅ Tabla permisos creada');
+  console.log('OK: Tabla permisos creada');
 
   // 3. Crear tabla relacional roles_permisos (N:M)
-  console.log('\n3️⃣ Creando tabla roles_permisos...');
+  console.log('\n3. Creando tabla roles_permisos...');
   db.exec(`
     CREATE TABLE IF NOT EXISTS roles_permisos (
       role_id INTEGER NOT NULL,
@@ -50,23 +50,23 @@ try {
       FOREIGN KEY (permiso_id) REFERENCES permisos(id) ON DELETE CASCADE
     );
   `);
-  console.log('✅ Tabla roles_permisos creada');
+  console.log('OK: Tabla roles_permisos creada');
 
   // 4. Agregar columna role_id a usuarios si no existe
-  console.log('\n4️⃣ Actualizando tabla usuarios...');
+  console.log('\n4. Actualizando tabla usuarios...');
   try {
     db.exec(`ALTER TABLE usuarios ADD COLUMN role_id INTEGER REFERENCES roles(id)`);
-    console.log('✅ Columna role_id agregada a usuarios');
+    console.log('OK: Columna role_id agregada a usuarios');
   } catch (e) {
     if (e.message.includes('duplicate column')) {
-      console.log('ℹ️  Columna role_id ya existe');
+      console.log('INFO: Columna role_id ya existe');
     } else {
       throw e;
     }
   }
 
   // 5. Insertar roles predeterminados
-  console.log('\n5️⃣ Insertando roles predeterminados...');
+  console.log('\n5. Insertando roles predeterminados...');
   const insertRole = db.prepare(`
     INSERT OR IGNORE INTO roles (nombre, descripcion)
     VALUES (?, ?)
@@ -77,10 +77,10 @@ try {
   insertRole.run('visitador', 'Visitador - Solo visualización de productos y ventas');
   insertRole.run('comprador', 'Comprador - Ve productos y crea órdenes de compra');
   
-  console.log('✅ Roles insertados');
+  console.log('OK: Roles insertados');
 
   // 6. Insertar permisos predeterminados
-  console.log('\n6️⃣ Insertando permisos predeterminados...');
+  console.log('\n6. Insertando permisos predeterminados...');
   const insertPermiso = db.prepare(`
     INSERT OR IGNORE INTO permisos (nombre, descripcion, categoria)
     VALUES (?, ?, ?)
@@ -104,10 +104,10 @@ try {
   insertPermiso.run('ver_roles', 'Ver listado de roles', 'roles');
   insertPermiso.run('gestionar_roles', 'Crear, editar y eliminar roles y permisos', 'roles');
   
-  console.log('✅ Permisos insertados');
+  console.log('OK: Permisos insertados');
 
   // 7. Asignar permisos a roles
-  console.log('\n7️⃣ Asignando permisos a roles...');
+  console.log('\n7. Asignando permisos a roles...');
   
   const roleAdmin = db.prepare('SELECT id FROM roles WHERE nombre = ?').get('admin');
   const roleVendedor = db.prepare('SELECT id FROM roles WHERE nombre = ?').get('vendedor');
@@ -125,7 +125,7 @@ try {
   for (const permiso of todosLosPermisos) {
     insertRolePermiso.run(roleAdmin.id, permiso.id);
   }
-  console.log(`  ✓ Admin: ${todosLosPermisos.length} permisos asignados (acceso total)`);
+  console.log(`  - Admin: ${todosLosPermisos.length} permisos asignados (acceso total)`);
   
   // Vendedor: CRUD productos y ventas (SIN gestionar usuarios)
   const permisosVendedor = [
@@ -143,7 +143,7 @@ try {
       insertRolePermiso.run(roleVendedor.id, permiso.id);
     }
   }
-  console.log(`  ✓ Vendedor: ${permisosVendedor.length} permisos asignados (CRUD productos/ventas)`);
+  console.log(`  - Vendedor: ${permisosVendedor.length} permisos asignados (CRUD productos/ventas)`);
   
   // Visitador: SOLO lectura de productos y ventas
   const permisosVisitador = ['ver_productos', 'ver_compras'];
@@ -153,7 +153,7 @@ try {
       insertRolePermiso.run(roleVisitador.id, permiso.id);
     }
   }
-  console.log(`  ✓ Visitador: ${permisosVisitador.length} permisos asignados (solo lectura)`);
+  console.log(`  - Visitador: ${permisosVisitador.length} permisos asignados (solo lectura)`);
 
   // Comprador: puede ver productos y generar órdenes de compra
   const permisosComprador = ['ver_productos', 'crear_compra'];
@@ -163,10 +163,10 @@ try {
       insertRolePermiso.run(roleComprador.id, permiso.id);
     }
   }
-  console.log(`  ✓ Comprador: ${permisosComprador.length} permisos asignados (compra y vista de productos)`);
+  console.log(`  - Comprador: ${permisosComprador.length} permisos asignados (compra y vista de productos)`);
 
   // 8. Asignar rol admin al usuario admin existente
-  console.log('\n8️⃣ Asignando rol al usuario admin...');
+  console.log('\n8. Asignando rol al usuario admin...');
   const updateUsuario = db.prepare(`
     UPDATE usuarios 
     SET role_id = ? 
@@ -175,25 +175,25 @@ try {
   const result = updateUsuario.run(roleAdmin.id);
   
   if (result.changes > 0) {
-    console.log('✅ Rol admin asignado al usuario admin');
+    console.log('OK: Rol admin asignado al usuario admin');
   } else {
-    console.log('ℹ️  Usuario admin ya tiene rol asignado');
+    console.log('INFO: Usuario admin ya tiene rol asignado');
   }
 
   // 9. Verificación
-  console.log('\n9️⃣ Verificando sistema de roles...');
+  console.log('\n9. Verificando sistema de roles...');
   const countRoles = db.prepare('SELECT COUNT(*) as c FROM roles').get();
   const countPermisos = db.prepare('SELECT COUNT(*) as c FROM permisos').get();
   const countRelaciones = db.prepare('SELECT COUNT(*) as c FROM roles_permisos').get();
   
-  console.log(`📊 Roles: ${countRoles.c}`);
-  console.log(`📊 Permisos: ${countPermisos.c}`);
-  console.log(`📊 Relaciones roles-permisos: ${countRelaciones.c}`);
+  console.log(`Total Roles: ${countRoles.c}`);
+  console.log(`Total Permisos: ${countPermisos.c}`);
+  console.log(`Total Relaciones roles-permisos: ${countRelaciones.c}`);
 
-  console.log('\n✅ Sistema de roles y permisos configurado exitosamente');
+  console.log('\nOK: Sistema de roles y permisos configurado exitosamente');
 
 } catch (error) {
-  console.error('❌ Error:', error);
+  console.error('ERROR:', error);
   process.exit(1);
 } finally {
   db.close();
