@@ -63,9 +63,11 @@ async function login(req, res) {
         userId: user.id,
         username: user.username,
         roles: [user.role],
-        role: user.role,  // Agregar role como string para compatibilidad
+        role: user.role,
         role_id: user.role_id,
-        permisos: nombresPermisos
+        permisos: nombresPermisos,
+        nombre_completo: user.nombre_completo,
+        telefono: user.telefono || null
       },
       JWT_SECRET,
       { expiresIn: '24h' }
@@ -80,6 +82,7 @@ async function login(req, res) {
         id: user.id,
         username: user.username,
         nombre_completo: user.nombre_completo,
+        telefono: user.telefono || null,
         email: user.email,
         roles: [user.role],
         role: user.role,
@@ -145,7 +148,8 @@ async function obtenerUsuarioActual(req, res) {
         nombre_completo: user.nombre_completo,
         email: user.email,
         roles: [user.role],
-        permisos: decoded.permisos
+        permisos: decoded.permisos,
+        telefono: user.telefono || null
       }
     });
 

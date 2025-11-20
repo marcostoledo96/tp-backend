@@ -1,5 +1,5 @@
-
-import { Search, ShoppingCart, UserCircle, LogOut } from 'lucide-react';
+import { useState } from 'react';
+import { Search, ShoppingCart, UserCircle, LogOut, Settings, ChevronDown } from 'lucide-react';
 import { useCart } from '../controllers/CartContext';
 import { useAuth } from '../controllers/AuthContext';
 import { useNavigate, useLocation } from 'react-router-dom';
@@ -18,6 +18,9 @@ export function Navbar() {
   };
 
   const isVendorPanel = location.pathname.startsWith('/vendor');
+  const displayName = user?.name || user?.username;
+  const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const canSeeConfig = user && (user.role === 'admin' || user.role === 'vendedor');
 
   return (
     <nav className="bg-gradient-to-r from-[#0f0f0f] via-[#1a1a1a] to-[#0f0f0f] border-b-2 border-[#fbbf24]/30 sticky top-0 z-50 backdrop-blur-lg shadow-xl">
@@ -47,41 +50,83 @@ export function Navbar() {
                 >
                   Menú
                 </button>
-                <button
-                  onClick={() => navigate('/cart')}
-                  className="relative bg-gradient-to-r from-[#ef4444] to-[#dc2626] text-white p-2.5 sm:p-3 rounded-lg sm:rounded-xl hover:from-[#f87171] hover:to-[#ef4444] transition-all shadow-lg hover:shadow-[#ef4444]/50 hover:scale-105 group"
-                >
-                  <ShoppingCart className="w-5 h-5 sm:w-6 sm:h-6" />
-                  {totalItems > 0 && (
-                    <span className="absolute -top-1 -right-1 sm:-top-2 sm:-right-2 bg-white text-[#ef4444] text-[0.625rem] sm:text-xs rounded-full w-5 h-5 sm:w-6 sm:h-6 flex items-center justify-center shadow-lg font-bold border-2 border-[#ef4444] group-hover:scale-110 transition-transform">
-                      {totalItems}
-                    </span>
-                  )}
-                </button>
-                {/* Botón de login visible y prominente en el header (Yo: moví el botón desde el footer al header) */}
-                <button
-                  onClick={() => navigate('/vendor/login')}
-                  className="ml-2 bg-gradient-to-r from-[#10b981] to-[#06b6d4] text-white px-4 py-2 sm:px-6 sm:py-2.5 rounded-lg sm:rounded-xl font-bold text-sm sm:text-base hover:from-[#34d399] hover:to-[#0ea5b5] transition-all shadow-lg hover:shadow-[#06b6d4]/50 hover:scale-105"
-                  aria-label="Iniciar sesión"
-                >
-                  Iniciar sesión
-                </button>
+                {user && (
+                  <button
+                    onClick={() => navigate('/cart')}
+                    className="relative bg-gradient-to-r from-[#ef4444] to-[#dc2626] text-white p-2.5 sm:p-3 rounded-lg sm:rounded-xl hover:from-[#f87171] hover:to-[#ef4444] transition-all shadow-lg hover:shadow-[#ef4444]/50 hover:scale-105 group"
+                  >
+                    <ShoppingCart className="w-5 h-5 sm:w-6 sm:h-6" />
+                    {totalItems > 0 && (
+                      <span className="absolute -top-1 -right-1 sm:-top-2 sm:-right-2 bg-white text-[#ef4444] text-[0.625rem] sm:text-xs rounded-full w-5 h-5 sm:w-6 sm:h-6 flex items-center justify-center shadow-lg font-bold border-2 border-[#ef4444] group-hover:scale-110 transition-transform">
+                        {totalItems}
+                      </span>
+                    )}
+                  </button>
+                )}
+                {!user && (
+                  <button
+                    onClick={() => navigate('/vendor/login')}
+                    className="ml-2 bg-gradient-to-r from-[#10b981] to-[#06b6d4] text-white px-4 py-2 sm:px-6 sm:py-2.5 rounded-lg sm:rounded-xl font-bold text-sm sm:text-base hover:from-[#34d399] hover:to-[#0ea5b5] transition-all shadow-lg hover:shadow-[#06b6d4]/50 hover:scale-105"
+                    aria-label="Iniciar sesión"
+                  >
+                    Iniciar sesión
+                  </button>
+                )}
               </>
             )}
             
-            {/* Solo mostrar info de usuario en panel de vendedor */}
-            {user && isVendorPanel && (
-              <div className="flex items-center gap-2 sm:gap-4">
-                <div className="flex items-center gap-1.5 sm:gap-2 text-[#fbbf24] bg-[#1f1f1f] px-2 sm:px-4 py-1.5 sm:py-2 rounded-lg sm:rounded-xl border border-[#fbbf24]/30">
-                  <UserCircle className="w-4 h-4 sm:w-5 sm:h-5" />
-                  <span className="text-xs sm:text-sm font-medium hidden xs:inline">{user.username}</span>
-                </div>
+            {/* Info de usuario y acceso a panel si corresponde */}
+            {user && (
+              <div className="relative flex items-center gap-2 sm:gap-3">
+                {/* Botón saludo con dropdown */}
                 <button
-                  onClick={handleLogout}
-                  className="text-gray-300 hover:text-[#ef4444] transition-colors p-1.5 sm:p-2 hover:bg-[#1f1f1f] rounded-lg sm:rounded-xl"
+                  onClick={() => setUserMenuOpen(o => !o)}
+                  className="hidden sm:flex items-center gap-2 text-[#fbbf24] bg-[#1f1f1f] px-3 py-2 rounded-xl border border-[#fbbf24]/30 hover:bg-[#232323]"
                 >
-                  <LogOut className="w-4 h-4 sm:w-5 sm:h-5" />
+                  <UserCircle className="w-5 h-5" />
+                  <span className="text-sm font-medium truncate max-w-[150px]">¡Hola {displayName}!</span>
+                  <ChevronDown className={`w-4 h-4 transition-transform ${userMenuOpen ? 'rotate-180' : ''}`} />
                 </button>
+                <button
+                  onClick={() => setUserMenuOpen(o => !o)}
+                  className="sm:hidden text-[#fbbf24] text-xs flex items-center gap-1"
+                >
+                  Hola, {displayName}
+                  <ChevronDown className={`w-3 h-3 transition-transform ${userMenuOpen ? 'rotate-180' : ''}`} />
+                </button>
+
+                {userMenuOpen && (
+                  <div className="absolute right-0 top-full mt-2 w-56 bg-[#1f1f1f] border border-[#fbbf24]/30 rounded-xl shadow-lg z-50 overflow-hidden">
+                    <div className="px-4 py-3 border-b border-[#fbbf24]/20">
+                      <p className="text-[#fbbf24] text-sm font-semibold truncate">{displayName}</p>
+                      <p className="text-gray-400 text-xs">{user.role}</p>
+                    </div>
+                    {canSeeConfig ? (
+                      <button
+                        onClick={() => { setUserMenuOpen(false); navigate('/vendor/panel'); }}
+                        className="w-full text-left px-4 py-2 text-sm text-gray-300 hover:bg-[#232323] flex items-center gap-2"
+                      >
+                        <Settings className="w-4 h-4" />
+                        Panel de configuración
+                      </button>
+                    ) : (
+                      <button
+                        onClick={() => { setUserMenuOpen(false); navigate('/profile'); }}
+                        className="w-full text-left px-4 py-2 text-sm text-gray-300 hover:bg-[#232323] flex items-center gap-2"
+                      >
+                        <UserCircle className="w-4 h-4" />
+                        Mi Perfil
+                      </button>
+                    )}
+                    <button
+                      onClick={() => { setUserMenuOpen(false); handleLogout(); navigate('/'); }}
+                      className="w-full text-left px-4 py-2 text-sm text-gray-300 hover:bg-[#232323] flex items-center gap-2"
+                    >
+                      <LogOut className="w-4 h-4" />
+                      Cerrar sesión
+                    </button>
+                  </div>
+                )}
               </div>
             )}
           </div>

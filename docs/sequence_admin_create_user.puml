@@ -1,0 +1,49 @@
+@startuml
+title Admin - Creación de Usuario Nuevo
+actor Admin as A
+participant "Frontend React\n(RolesAdmin / UsuariosAdmin)" as FE
+participant "AuthContext" as AUTH
+participant "Express Router /usuarios" as R
+participant "Middleware verificarAutenticacion" as M1
+participant "Middleware verificarPermiso" as M2
+participant "UsuarioController.crearUsuario" as UC
+participant "DB" as DB
+
+A -> FE: Abre gestión usuarios
+FE -> R: GET /api/usuarios (token)
+R -> M1: verificarAutenticacion
+M1 -> M2: verificarPermiso(['gestionar_usuarios','ver_usuarios'])
+M2 -> DB: SELECT permisos rol admin
+DB --> M2: Lista permisos
+M2 --> R: OK
+R -> UC: listarUsuarios()
+UC -> DB: SELECT usuarios
+DB --> UC: Datos
+UC --> R: 200 { usuarios }
+R --> FE: Renderizar tabla
+
+A -> FE: Completa formulario nuevo usuario {username, password, nombre, telefono?, role_id}
+FE -> R: POST /api/usuarios (token)
+R -> M1: verificarAutenticacion
+M1 -> M2: verificarPermiso('gestionar_usuarios')
+M2 -> DB: SELECT permisos admin
+DB --> M2: OK
+alt Permiso válido
+  M2 --> R: Continuar
+  R -> UC: crearUsuario(datos)
+  UC -> DB: SELECT id FROM usuarios WHERE username = ?
+  DB --> UC: (no existe)
+  UC -> DB: SELECT id,nombre FROM roles WHERE id = ? AND activo=1
+  DB --> UC: Rol válido
+  UC -> UC: bcrypt.hash(password)
+  UC -> DB: INSERT INTO usuarios (username,password_hash,nombre_completo,telefono,role_id)
+  DB --> UC: lastInsertRowid
+  UC --> R: 201 { usuario{id,username,nombre,role_id} }
+  R --> FE: Mostrar éxito
+  FE -> A: Refrescar lista usuarios
+else Permiso denegado
+  M2 --> R: 403
+  R --> FE: Mostrar error
+  FE -> A: Acceso denegado
+end
+@enduml

@@ -1,0 +1,19 @@
+@startuml
+title Logout / Cierre de Sesión
+actor Usuario as U
+participant "Frontend React\n(Navbar / AuthContext)" as FE
+participant "localStorage" as LS
+participant "React Router" as RR
+
+U -> FE: Click "Cerrar sesión"
+FE -> FE: auth.logout()
+FE -> LS: removeItem('token')
+FE -> LS: removeItem('user')
+FE -> FE: setUser(null) (limpia contexto)
+FE -> RR: navigate('/')
+RR --> U: Redirigido a LandingPage
+note right of FE
+No se hace llamada al backend
+(Logout stateless JWT).
+end note
+@enduml

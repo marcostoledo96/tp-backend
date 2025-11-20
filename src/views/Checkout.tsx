@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useCart } from '../controllers/CartContext';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../controllers/AuthContext';
 import { PoliceButton } from './PoliceButton';
 import { FileText, Upload, CreditCard, Banknote } from 'lucide-react';
 import { Label } from './ui/label';
@@ -11,14 +12,24 @@ import { getApiUrl } from '../config/api';
 export function Checkout() {
   const { cart, getTotal, clearCart } = useCart();
   const navigate = useNavigate();
+  const { user } = useAuth();
 
   const [formData, setFormData] = useState({
-    fullName: '',
-    phone: '',
+    fullName: user?.name || '',
+    phone: user?.phone || '',
     tableNumber: '',
     paymentMethod: '' as 'efectivo' | 'transferencia' | '',
     details: '',
   });
+
+  // Si cambia el usuario (login/logout), actualizar los campos
+  useEffect(() => {
+    setFormData(prev => ({
+      ...prev,
+      fullName: user?.name || '',
+      phone: user?.phone || ''
+    }));
+  }, [user]);
 
   const [transferProof, setTransferProof] = useState<File | null>(null);
 
@@ -66,9 +77,22 @@ export function Checkout() {
         formDataToSend.append('comprobante', transferProof);
       }
 
+      // Obtener token de autenticación
+      const token = localStorage.getItem('token');
+      if (!token) {
+        toast.error('Sesión expirada', {
+          description: 'Por favor iniciá sesión nuevamente',
+        });
+        navigate('/vendor/login');
+        return;
+      }
+
       // Enviar al backend
       const response = await fetch(getApiUrl('/api/compras'), {
         method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        },
         body: formDataToSend,
       });
 

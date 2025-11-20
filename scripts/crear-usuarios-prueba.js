@@ -18,8 +18,9 @@ try {
   const roleAdmin = db.prepare('SELECT id FROM roles WHERE nombre = ?').get('admin');
   const roleVendedor = db.prepare('SELECT id FROM roles WHERE nombre = ?').get('vendedor');
   const roleVisitador = db.prepare('SELECT id FROM roles WHERE nombre = ?').get('visitador');
+  const roleComprador = db.prepare('SELECT id FROM roles WHERE nombre = ?').get('comprador');
 
-  if (!roleAdmin || !roleVendedor || !roleVisitador) {
+  if (!roleAdmin || !roleVendedor || !roleVisitador || !roleComprador) {
     console.error('❌ Error: Los roles no existen. Ejecuta primero setup-roles-permisos.js');
     process.exit(1);
   }
@@ -32,6 +33,13 @@ try {
       nombre: 'Administrador Principal',
       role_id: roleAdmin.id,
       descripcion: 'Usuario administrador con acceso total al sistema'
+    },
+    {
+      username: 'comprador1',
+      password: 'compra123',
+      nombre: 'Pedro Comprador',
+      role_id: roleComprador.id,
+      descripcion: 'Cliente con permisos de compra'
     },
     {
       username: 'vendedor1',
@@ -75,8 +83,9 @@ try {
     insertUsuario.run(usuario.username, hashedPassword, usuario.nombre, usuario.role_id);
     
     const roleName = usuario.role_id === roleAdmin.id ? 'admin' 
-                   : usuario.role_id === roleVendedor.id ? 'vendedor' 
-                   : 'visitador';
+             : usuario.role_id === roleVendedor.id ? 'vendedor' 
+             : usuario.role_id === roleVisitador.id ? 'visitador'
+             : 'comprador';
     
     console.log(`✅ ${usuario.nombre}`);
     console.log(`   Usuario: ${usuario.username}`);

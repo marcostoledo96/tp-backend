@@ -1,0 +1,28 @@
+@startuml
+title Listado de Productos (filtrado stock > 0)
+actor Usuario as U
+participant "Frontend React\n(Menu / Landing)" as FE
+participant "Express Router /productos" as R
+participant "ProductoController" as PC
+participant "ProductoModel" as PM
+participant "DB (SQLite)" as DB
+
+U -> FE: Abre página menú
+FE -> R: GET /api/productos
+R -> PC: obtenerProductos()
+PC -> PM: obtenerProductos()
+PM -> DB: SELECT id,nombre,categoria,precio,stock,activo\nFROM productos\nWHERE activo = 1 AND stock > 0\nORDER BY categoria, subcategoria, nombre
+DB --> PM: Lista productos (solo stock > 0)
+PM -> PM: Mapear disponible = (stock > 0 && activo)
+PM --> PC: Array productos sanitizado
+PC --> R: 200 { productos: [...] }
+R --> FE: Enviar JSON
+FE -> FE: Renderizar tarjetas (oculta agotados)
+FE -> U: Muestra productos disponibles
+
+note right of PM
+Cualquier producto con stock=0
+queda fuera del SELECT.
+No se envía al frontend.
+end note
+@enduml

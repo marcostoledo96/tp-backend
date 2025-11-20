@@ -58,7 +58,8 @@ export function VendorLogin() {
           description: 'Bienvenido al panel de control',
         });
         
-        navigate('/vendor/panel');
+        // Requerimiento: volver al home con la sesión cargada
+        navigate('/');
       } else {
         toast.error('Acceso denegado', {
           description: 'Usuario o contraseña incorrectos',
@@ -162,10 +163,24 @@ export function VendorLogin() {
           
           {/* Credenciales de demostración */}
           <div className="mt-6 p-4 bg-[#0f0f0f]/50 border border-[#fbbf24]/20 rounded-xl">
-            <p className="text-gray-400 text-sm mb-2 text-center">Credenciales de demostración:</p>
-            <div className="space-y-1 text-center">
-              <p className="text-[#fbbf24] font-mono text-sm"><span className="text-gray-500">Usuario:</span> admin</p>
-              <p className="text-[#fbbf24] font-mono text-sm"><span className="text-gray-500">Contraseña:</span> admin123</p>
+            <p className="text-gray-400 text-sm mb-3 text-center">Credenciales de demostración:</p>
+            <div className="grid grid-cols-1 gap-2 text-center">
+              <div>
+                <p className="text-xs text-gray-400 uppercase tracking-wide">Vendedor</p>
+                <p className="text-[#fbbf24] font-mono text-sm">vendedor1 / <span className="text-gray-300">vend123</span></p>
+              </div>
+              <div>
+                <p className="text-xs text-gray-400 uppercase tracking-wide">Visitador</p>
+                <p className="text-[#fbbf24] font-mono text-sm">visitador1 / <span className="text-gray-300">visit123</span></p>
+              </div>
+              <div>
+                <p className="text-xs text-gray-400 uppercase tracking-wide">Comprador</p>
+                <p className="text-[#fbbf24] font-mono text-sm">comprador1 / <span className="text-gray-300">compra123</span></p>
+              </div>
+              <div>
+                <p className="text-xs text-gray-400 uppercase tracking-wide">Admin</p>
+                <p className="text-[#fbbf24] font-mono text-sm">admin / <span className="text-gray-300">admin123</span></p>
+              </div>
             </div>
           </div>
         </div>

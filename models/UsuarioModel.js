@@ -19,6 +19,7 @@ function obtenerUsuarioPorUsername(username) {
       u.password_hash, 
       u.nombre_completo, 
       u.email, 
+      u.telefono,
       u.role_id,
       u.activo,
       r.nombre as role,
@@ -34,6 +35,7 @@ function obtenerUsuarioPorUsername(username) {
   
   return {
     ...usuario,
+    telefono: usuario.telefono || null,
     activo: Boolean(usuario.activo)
   };
 }

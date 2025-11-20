@@ -1,0 +1,33 @@
+@startuml
+title Login (exitoso y fallido)
+actor Usuario as U
+participant "Frontend React\n(AuthContext)" as FE
+participant "Express Router /auth" as R
+participant "AuthController" as AC
+participant "UsuarioModel / DB" as DB
+
+U -> FE: Ingresa credenciales
+FE -> R: POST /api/auth/login {username, password}
+R -> AC: login(username, password)
+AC -> DB: SELECT usuario por username
+DB --> AC: Datos usuario + password_hash
+alt Usuario existe
+  AC -> AC: bcrypt.compare(password, hash)
+  alt Contraseña válida
+    AC -> DB: SELECT rol + permisos
+    AC -> AC: Construir payload JWT
+    AC --> R: 200 { token, usuario{ id, username, nombre_completo, telefono, rol } }
+    R --> FE: Respuesta
+    FE -> FE: Guardar token + usuario en localStorage
+    FE -> U: Redirige a '/'
+  else Contraseña inválida
+    AC --> R: 401 { error: "Credenciales inválidas" }
+    R --> FE: Error
+    FE -> U: Muestra mensaje de error
+  end
+else Usuario no existe
+  AC --> R: 401 { error: "Credenciales inválidas" }
+  R --> FE: Error
+  FE -> U: Muestra mensaje de error
+end
+@enduml

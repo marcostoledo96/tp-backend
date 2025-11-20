@@ -27,18 +27,24 @@ const normalizeRole = (role?: string | null): VendorUser['role'] => {
     return 'visitador';
   }
 
+  if (roleName === 'comprador') {
+    return 'comprador';
+  }
+
   return 'vendedor';
 };
 
 // Convierte la respuesta del backend en el shape mínimo que el frontend necesita.
-const buildUserFromPayload = (payload: { username?: string; roles?: string[]; role?: string | null }): VendorUser | null => {
+const buildUserFromPayload = (payload: { username?: string; roles?: string[]; role?: string | null; nombre_completo?: string | null; telefono?: string | null }): VendorUser | null => {
   if (!payload?.username) {
     return null;
   }
 
   return {
     username: payload.username,
-    role: normalizeRole(payload.roles?.[0] ?? payload.role)
+    role: normalizeRole(payload.roles?.[0] ?? payload.role),
+    name: payload.nombre_completo ?? undefined,
+    phone: payload.telefono ?? undefined
   };
 };
 
@@ -49,7 +55,11 @@ const parseStoredUser = (rawUser: string | null): VendorUser | null => {
 
   try {
     const data = JSON.parse(rawUser);
-    return buildUserFromPayload({ username: data.username, role: data.role });
+    // Si tenemos datos completos guardados, los devolvemos directamente para conservar el nombre
+    if (data && data.username && data.role) {
+      return { username: data.username, role: data.role, name: data.name } as VendorUser;
+    }
+    return buildUserFromPayload({ username: data.username, role: data.role, nombre_completo: data.name, telefono: data.phone });
   } catch (error) {
     console.error('Error al parsear usuario almacenado:', error);
     return null;
@@ -91,7 +101,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
               const refreshedUser = buildUserFromPayload({
                 username: data.usuario?.username,
                 roles: data.usuario?.roles,
-                role: data.usuario?.role
+                role: data.usuario?.role,
+                nombre_completo: data.usuario?.nombre_completo,
+                telefono: data.usuario?.telefono
               });
 
               if (refreshedUser) {
@@ -151,7 +163,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const userData = buildUserFromPayload({
           username: data.usuario?.username,
           roles: data.usuario?.roles,
-          role: data.usuario?.role
+          role: data.usuario?.role,
+          nombre_completo: data.usuario?.nombre_completo,
+          telefono: data.usuario?.telefono
         });
 
         if (!userData) {

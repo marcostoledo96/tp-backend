@@ -75,6 +75,7 @@ try {
   insertRole.run('admin', 'Administrador - Acceso total: CRUD productos, ventas y usuarios');
   insertRole.run('vendedor', 'Vendedor - CRUD productos y ventas (sin crear usuarios)');
   insertRole.run('visitador', 'Visitador - Solo visualización de productos y ventas');
+  insertRole.run('comprador', 'Comprador - Ve productos y crea órdenes de compra');
   
   console.log('✅ Roles insertados');
 
@@ -111,6 +112,7 @@ try {
   const roleAdmin = db.prepare('SELECT id FROM roles WHERE nombre = ?').get('admin');
   const roleVendedor = db.prepare('SELECT id FROM roles WHERE nombre = ?').get('vendedor');
   const roleVisitador = db.prepare('SELECT id FROM roles WHERE nombre = ?').get('visitador');
+  const roleComprador = db.prepare('SELECT id FROM roles WHERE nombre = ?').get('comprador');
   
   const todosLosPermisos = db.prepare('SELECT id FROM permisos').all();
   
@@ -152,6 +154,16 @@ try {
     }
   }
   console.log(`  ✓ Visitador: ${permisosVisitador.length} permisos asignados (solo lectura)`);
+
+  // Comprador: puede ver productos y generar órdenes de compra
+  const permisosComprador = ['ver_productos', 'crear_compra'];
+  for (const nombrePermiso of permisosComprador) {
+    const permiso = db.prepare('SELECT id FROM permisos WHERE nombre = ?').get(nombrePermiso);
+    if (permiso) {
+      insertRolePermiso.run(roleComprador.id, permiso.id);
+    }
+  }
+  console.log(`  ✓ Comprador: ${permisosComprador.length} permisos asignados (compra y vista de productos)`);
 
   // 8. Asignar rol admin al usuario admin existente
   console.log('\n8️⃣ Asignando rol al usuario admin...');

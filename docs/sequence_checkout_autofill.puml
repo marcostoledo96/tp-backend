@@ -1,0 +1,25 @@
+@startuml
+title Autofill de Checkout (Nombre y Teléfono)
+actor Usuario as U
+participant "Login Form" as LF
+participant "AuthController /api/auth/login" as AC
+participant "AuthContext" as AUTH
+participant "localStorage" as LS
+participant "Checkout Component" as CO
+
+U -> LF: Ingresa credenciales
+LF -> AC: POST /api/auth/login
+AC --> LF: 200 { token, usuario{ nombre_completo, telefono } }
+LF -> AUTH: loginSuccess(payload)
+AUTH -> LS: setItem('token')
+AUTH -> LS: setItem('user') ({ name, phone })
+AUTH -> AUTH: setUser({ name, phone })
+LF -> U: Redirige a '/'
+
+U -> CO: Navega a /checkout
+CO -> AUTH: useAuth() => user { name, phone }
+CO -> CO: init state fullName = user.name\nphone = user.phone
+CO <- AUTH: user actualizado
+CO -> CO: useEffect([user]) => setFormData(fullName, phone)
+U -> CO: Ve campos ya completos
+@enduml

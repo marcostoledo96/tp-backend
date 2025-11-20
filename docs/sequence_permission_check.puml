@@ -1,0 +1,37 @@
+@startuml
+title Verificación de Permisos en Ruta Protegida
+actor Usuario as U
+participant "Frontend React\n(ProtectedRoute)" as FE
+participant "Express Router" as R
+participant "Middleware verificarAutenticacion" as M1
+participant "Middleware verificarPermiso" as M2
+participant "Controller" as C
+
+U -> FE: Navega a /api/usuarios (panel)
+FE -> R: GET /api/usuarios (Authorization: Bearer token)
+R -> M1: verificarAutenticacion
+M1 -> M1: Decodificar JWT
+alt Token válido
+  M1 --> R: req.user = { userId, role }
+  R -> M2: verificarPermiso(['gestionar_usuarios','ver_usuarios'])
+  M2 -> DB: SELECT permisos rol
+  DB --> M2: Lista permisos
+  alt Permiso presente
+    M2 --> R: OK
+    R -> C: listarUsuarios()
+    C -> DB: SELECT usuarios
+    DB --> C: Datos usuarios
+    C --> R: JSON usuarios
+    R --> FE: 200 { usuarios }
+    FE -> U: Renderiza lista
+  else Permiso faltante
+    M2 --> R: 403 { error: 'Permiso insuficiente' }
+    R --> FE: 403
+    FE -> U: Muestra acceso denegado
+  end
+else Token inválido / ausente
+  M1 --> R: 401 { error: 'No autenticado' }
+  R --> FE: 401
+  FE -> U: Redirige a /vendor/login
+end
+@enduml

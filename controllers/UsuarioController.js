@@ -18,6 +18,7 @@ class UsuarioController {
           u.id,
           u.username,
           u.nombre_completo as nombre,
+          u.telefono,
           u.role_id,
           r.nombre as role_nombre,
           r.descripcion as role_descripcion,
@@ -71,6 +72,7 @@ class UsuarioController {
           u.id,
           u.username,
           u.nombre_completo as nombre,
+          u.telefono,
           u.role_id,
           r.nombre as role_nombre,
           r.descripcion as role_descripcion,
@@ -119,7 +121,7 @@ class UsuarioController {
   static async crearUsuario(req, res) {
     let db;
     try {
-      const { username, password, nombre, role_id } = req.body;
+      const { username, password, nombre, telefono, role_id } = req.body;
       db = getDB();
 
       // Validaciones
@@ -165,9 +167,9 @@ class UsuarioController {
 
       // Insertar usuario
       const result = db.prepare(`
-        INSERT INTO usuarios (username, password_hash, nombre_completo, role_id)
-        VALUES (?, ?, ?, ?)
-      `).run(username, hashedPassword, nombre, role_id);
+        INSERT INTO usuarios (username, password_hash, nombre_completo, telefono, role_id)
+        VALUES (?, ?, ?, ?, ?)
+      `).run(username, hashedPassword, nombre, telefono || null, role_id);
 
       db.close();
 
@@ -199,7 +201,7 @@ class UsuarioController {
     let db;
     try {
       const { id } = req.params;
-      const { username, nombre, role_id } = req.body;
+      const { username, nombre, telefono, role_id } = req.body;
       db = getDB();
 
       // Verificar que el usuario existe
@@ -252,6 +254,10 @@ class UsuarioController {
       if (nombre) {
         updates.push('nombre_completo = ?');
         values.push(nombre);
+      }
+      if (telefono !== undefined) {
+        updates.push('telefono = ?');
+        values.push(telefono || null);
       }
       if (role_id) {
         updates.push('role_id = ?');
@@ -338,6 +344,76 @@ class UsuarioController {
       res.status(500).json({
         success: false,
         mensaje: 'Error al cambiar contraseña'
+      });
+    }
+  }
+
+  /**
+   * Actualizar perfil propio (cualquier usuario autenticado)
+   * Solo puede modificar: nombre_completo, telefono y password
+   */
+  static async actualizarPerfil(req, res) {
+    let db;
+    try {
+      // El ID del usuario viene del token JWT (req.user)
+      const userId = req.user.userId;
+      const { nombre_completo, telefono, password } = req.body;
+      db = getDB();
+
+      // Verificar que el usuario existe
+      const usuario = db.prepare('SELECT * FROM usuarios WHERE id = ?').get(userId);
+      if (!usuario) {
+        return res.status(404).json({
+          success: false,
+          mensaje: 'Usuario no encontrado'
+        });
+      }
+
+      // Construir query de actualización
+      const updates = [];
+      const values = [];
+
+      if (nombre_completo) {
+        updates.push('nombre_completo = ?');
+        values.push(nombre_completo);
+      }
+      
+      if (telefono !== undefined) {
+        updates.push('telefono = ?');
+        values.push(telefono || null);
+      }
+
+      // Si se proporciona nueva contraseña, hashearla
+      if (password) {
+        const hashedPassword = bcrypt.hashSync(password, 10);
+        updates.push('password_hash = ?');
+        values.push(hashedPassword);
+      }
+
+      if (updates.length === 0) {
+        return res.status(400).json({
+          success: false,
+          mensaje: 'No hay datos para actualizar'
+        });
+      }
+
+      values.push(userId);
+      const query = `UPDATE usuarios SET ${updates.join(', ')} WHERE id = ?`;
+      
+      db.prepare(query).run(...values);
+
+      db.close();
+
+      res.json({
+        success: true,
+        mensaje: 'Perfil actualizado exitosamente'
+      });
+    } catch (error) {
+      console.error('Error al actualizar perfil:', error);
+      if (db) db.close();
+      res.status(500).json({
+        success: false,
+        mensaje: 'Error al actualizar perfil'
       });
     }
   }

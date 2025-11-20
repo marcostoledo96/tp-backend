@@ -1,0 +1,51 @@
+@startuml
+title Eliminación de Usuario (DELETE /api/usuarios/:id)
+actor Admin as A
+participant "Frontend React\n(UsuariosAdmin)" as FE
+participant "AuthContext" as AUTH
+participant "Express Router /usuarios" as R
+participant "Middleware verificarAutenticacion" as M1
+participant "Middleware verificarPermiso" as M2
+participant "UsuarioController.eliminarUsuario" as UC
+participant "DB" as DB
+
+A -> FE: Click "Eliminar" en usuario X
+FE -> AUTH: Obtener token
+AUTH --> FE: token
+FE -> R: DELETE /api/usuarios/7 (Authorization: Bearer)
+R -> M1: verificarAutenticacion
+M1 -> M2: verificarPermiso('gestionar_usuarios')
+M2 -> DB: SELECT permisos del rol
+DB --> M2: Lista permisos
+alt Tiene permiso
+  M2 --> R: OK
+  R -> UC: eliminarUsuario(id=7)
+  UC -> DB: SELECT username FROM usuarios WHERE id=7
+  DB --> UC: { username:'juan' }
+  alt id == 1 (admin principal)
+    UC --> R: 403 { mensaje:'No se puede eliminar el usuario administrador principal' }
+    R --> FE: Error
+    FE -> A: Mostrar restricción
+  else id == req.user.id (auto-eliminación)
+    UC --> R: 403 { mensaje:'No puedes eliminar tu propio usuario' }
+    R --> FE: Error
+    FE -> A: Mostrar restricción
+  else
+    UC -> DB: DELETE FROM usuarios WHERE id=7
+    DB --> UC: changes=1
+    alt changes > 0
+      UC --> R: 200 { mensaje:'Usuario juan eliminado exitosamente' }
+      R --> FE: Éxito
+      FE -> A: Refrescar lista
+    else
+      UC --> R: 404 { mensaje:'No se pudo eliminar el usuario' }
+      R --> FE: Error
+      FE -> A: Mostrar mensaje
+    end
+  end
+else Sin permiso
+  M2 --> R: 403 { error:'Permiso insuficiente' }
+  R --> FE: Error
+  FE -> A: Mostrar acceso denegado
+end
+@enduml

@@ -26,7 +26,7 @@ export function RolesAdmin() {
   const [creatingUser, setCreatingUser] = useState(false);
   const [changingPassword, setChangingPassword] = useState<number | null>(null);
   const [showPassword, setShowPassword] = useState(false);
-  const [userForm, setUserForm] = useState({ username: '', nombre: '', password: '', password_confirm: '', role_id: 0 });
+  const [userForm, setUserForm] = useState({ username: '', nombre: '', telefono: '', password: '', password_confirm: '', role_id: 0 });
 
   const token = localStorage.getItem('token') || '';
 
@@ -151,14 +151,14 @@ export function RolesAdmin() {
     setCreatingUser(true);
     setEditingUser(null);
     setChangingPassword(null);
-    setUserForm({ username: '', nombre: '', password: '', password_confirm: '', role_id: roles[0]?.id || 0 });
+    setUserForm({ username: '', nombre: '', telefono: '', password: '', password_confirm: '', role_id: roles[0]?.id || 0 });
   }
 
   function iniciarEdicionUsuario(usuario: any) {
     setEditingUser(usuario);
     setCreatingUser(false);
     setChangingPassword(null);
-    setUserForm({ username: usuario.username, nombre: usuario.nombre, password: '', password_confirm: '', role_id: usuario.role_id });
+    setUserForm({ username: usuario.username, nombre: usuario.nombre, telefono: usuario.telefono || '', password: '', password_confirm: '', role_id: usuario.role_id });
   }
 
   function iniciarCambioPassword(usuarioId: number) {
@@ -172,7 +172,7 @@ export function RolesAdmin() {
     setEditingUser(null);
     setCreatingUser(false);
     setChangingPassword(null);
-    setUserForm({ username: '', nombre: '', password: '', password_confirm: '', role_id: 0 });
+    setUserForm({ username: '', nombre: '', telefono: '', password: '', password_confirm: '', role_id: 0 });
   }
 
   async function guardarUsuario() {
@@ -195,7 +195,7 @@ export function RolesAdmin() {
     try {
       const url = creatingUser ? `${API_URL}/api/usuarios` : `${API_URL}/api/usuarios/${editingUser.id}`;
       const method = creatingUser ? 'POST' : 'PUT';
-      const body = creatingUser ? userForm : { username: userForm.username, nombre: userForm.nombre, role_id: userForm.role_id };
+      const body = creatingUser ? userForm : { username: userForm.username, nombre: userForm.nombre, telefono: userForm.telefono, role_id: userForm.role_id };
 
       const res = await fetch(url, {
         method,
@@ -294,68 +294,178 @@ export function RolesAdmin() {
         {/* CONTENIDO: ROLES */}
         {activeTab === 'roles' && (
           <>
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-white text-2xl font-semibold">Roles y Permisos</h2>
-              <PoliceButton icon={Plus} onClick={iniciarCreacion}>Nuevo Rol</PoliceButton>
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
+              <h2 className="text-white text-xl sm:text-2xl font-semibold">Roles y Permisos</h2>
+              <PoliceButton icon={Plus} onClick={iniciarCreacion}>
+                <span className="hidden sm:inline">Nuevo Rol</span>
+                <span className="sm:hidden">Nuevo</span>
+              </PoliceButton>
             </div>
 
             {!showForm && (
-              <div className="bg-[#0a0a0a] p-6 rounded-xl">
-                <table className="w-full text-left text-white">
-                  <thead>
-                    <tr className="border-b border-[#fbbf24]/20">
-                      <th className="py-2">ID</th>
-                      <th>Nombre</th>
-                      <th>Descripción</th>
-                      <th>Permisos</th>
-                      <th className="text-right">Acciones</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {roles.map((r) => (
-                      <tr key={r.id} className="border-b border-[#fbbf24]/10">
-                        <td className="py-3">{r.id}</td>
-                        <td className="font-semibold">{r.nombre}</td>
-                        <td className="text-gray-300">{r.descripcion}</td>
-                        <td className="text-sm text-gray-300">{(r.permisos || []).map((p: any) => p.nombre).join(', ')}</td>
-                        <td className="text-right">
-                          <button onClick={() => iniciarEdicion(r)} className="p-2 bg-blue-500/20 rounded-md mr-2">Editar</button>
-                          <button onClick={() => eliminarRol(r.id)} className="p-2 bg-red-500/20 rounded-md">Eliminar</button>
-                        </td>
+              <>
+                {/* Vista Desktop: Tabla */}
+                <div className="hidden lg:block bg-[#0a0a0a] p-6 rounded-xl overflow-x-auto">
+                  <table className="w-full text-left text-white">
+                    <thead>
+                      <tr className="border-b border-[#fbbf24]/20">
+                        <th className="py-2 px-2">ID</th>
+                        <th className="px-2">Nombre</th>
+                        <th className="px-2">Descripción</th>
+                        <th className="px-2">Permisos</th>
+                        <th className="text-right px-2">Acciones</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+                    </thead>
+                    <tbody>
+                      {roles.map((r) => (
+                        <tr key={r.id} className="border-b border-[#fbbf24]/10 hover:bg-[#fbbf24]/5 transition-colors">
+                          <td className="py-3 px-2">{r.id}</td>
+                          <td className="font-semibold px-2">{r.nombre}</td>
+                          <td className="text-gray-300 px-2">{r.descripcion}</td>
+                          <td className="text-sm text-gray-300 px-2 max-w-xs truncate">{(r.permisos || []).map((p: any) => p.nombre).join(', ')}</td>
+                          <td className="text-right px-2 space-x-2">
+                            <button onClick={() => iniciarEdicion(r)} className="px-3 py-1.5 bg-blue-500/20 hover:bg-blue-500/30 rounded-md text-sm transition-colors">
+                              Editar
+                            </button>
+                            <button onClick={() => eliminarRol(r.id)} className="px-3 py-1.5 bg-red-500/20 hover:bg-red-500/30 rounded-md text-sm transition-colors">
+                              Eliminar
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+
+                {/* Vista Mobile/Tablet: Cards */}
+                <div className="lg:hidden grid grid-cols-1 gap-4">
+                  {roles.map((r) => (
+                    <div key={r.id} className="bg-[#0a0a0a] p-4 rounded-xl border border-[#fbbf24]/10">
+                      <div className="flex items-start justify-between mb-3">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-1">
+                            <span className="text-xs text-gray-500">#{r.id}</span>
+                            <h3 className="text-white font-bold text-lg">{r.nombre}</h3>
+                          </div>
+                          <p className="text-gray-400 text-sm">{r.descripcion}</p>
+                        </div>
+                      </div>
+                      
+                      <div className="mb-3">
+                        <p className="text-xs text-[#fbbf24] font-semibold mb-1">Permisos:</p>
+                        <div className="flex flex-wrap gap-1">
+                          {(r.permisos || []).map((p: any, idx: number) => (
+                            <span key={idx} className="text-xs bg-[#fbbf24]/10 text-gray-300 px-2 py-1 rounded">
+                              {p.nombre}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+
+                      <div className="flex gap-2">
+                        <button 
+                          onClick={() => iniciarEdicion(r)} 
+                          className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-blue-500/20 hover:bg-blue-500/30 rounded-md text-sm transition-colors"
+                        >
+                          <Edit2 className="h-4 w-4" />
+                          Editar
+                        </button>
+                        <button 
+                          onClick={() => eliminarRol(r.id)} 
+                          className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-red-500/20 hover:bg-red-500/30 rounded-md text-sm transition-colors"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                          Eliminar
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </>
             )}
 
             {showForm && (
-              <div className="bg-[#0a0a0a] p-6 rounded-xl">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                  <input value={form.nombre} onChange={(e) => setForm({ ...form, nombre: e.target.value })} placeholder="Nombre del rol" className="p-3 bg-[#070707] rounded-md text-white" />
-                  <input value={form.descripcion} onChange={(e) => setForm({ ...form, descripcion: e.target.value })} placeholder="Descripción (opcional)" className="p-3 bg-[#070707] rounded-md text-white" />
-                </div>
+              <div className="bg-[#0a0a0a] p-4 sm:p-6 rounded-xl max-w-4xl mx-auto">
+                <h3 className="text-[#fbbf24] font-bold text-lg sm:text-xl mb-4">
+                  {editingRole ? 'Editar Rol' : 'Crear Nuevo Rol'}
+                </h3>
 
-                <div className="mb-4">
-                  <p className="text-gray-300 mb-2">Permisos (hacé clic para asignar):</p>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                    {Object.keys(permisosPorCategoria).map((cat) => (
-                      <div key={cat} className="p-3 bg-[#0f0f0f] rounded-md border border-[#fbbf24]/10">
-                        <p className="text-sm text-[#fbbf24] font-semibold mb-2">{cat}</p>
-                        {permisosPorCategoria[cat].map((perm: any) => (
-                          <label key={perm.id} className="flex items-center gap-2 mb-1">
-                            <input type="checkbox" checked={form.permisos.includes(perm.id)} onChange={() => togglePermiso(perm.id)} />
-                            <span className="text-white text-sm">{perm.nombre} <span className="text-gray-400 text-xs">{perm.descripcion}</span></span>
-                          </label>
-                        ))}
-                      </div>
-                    ))}
+                <div className="space-y-4">
+                  <div>
+                    <label className="text-white block mb-2 text-sm font-medium">Nombre del Rol</label>
+                    <input
+                      type="text"
+                      value={form.nombre}
+                      onChange={(e) => setForm({ ...form, nombre: e.target.value })}
+                      className="w-full bg-[#1a1a1a] text-white px-4 py-2 rounded-lg border border-[#fbbf24]/20 focus:border-[#fbbf24] focus:outline-none transition-colors"
+                      placeholder="Ej: vendedor, cajero..."
+                    />
                   </div>
-                </div>
 
-                <div className="flex gap-3">
-                  <PoliceButton icon={Save} onClick={guardar}>Guardar Rol</PoliceButton>
-                  <PoliceButton icon={X} variant="secondary" onClick={() => setShowForm(false)}>Cancelar</PoliceButton>
+                  <div>
+                    <label className="text-white block mb-2 text-sm font-medium">Descripción</label>
+                    <textarea
+                      value={form.descripcion}
+                      onChange={(e) => setForm({ ...form, descripcion: e.target.value })}
+                      className="w-full bg-[#1a1a1a] text-white px-4 py-2 rounded-lg border border-[#fbbf24]/20 focus:border-[#fbbf24] focus:outline-none transition-colors resize-none"
+                      rows={3}
+                      placeholder="Describe las responsabilidades de este rol..."
+                    />
+                  </div>
+
+                  <div>
+                    <label className="text-white block mb-3 text-sm font-medium flex items-center gap-2">
+                      <Shield className="h-4 w-4" />
+                      Permisos Asignados
+                    </label>
+                    
+                    <div className="space-y-3">
+                      {Object.keys(permisosPorCategoria).map((cat) => (
+                        <div key={cat} className="bg-[#1a1a1a] p-4 rounded-lg border border-[#fbbf24]/10">
+                          <h4 className="text-[#fbbf24] font-semibold mb-3 text-sm uppercase tracking-wide flex items-center gap-2">
+                            <Key className="h-4 w-4" />
+                            {cat}
+                          </h4>
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            {permisosPorCategoria[cat].map((perm: any) => (
+                              <label
+                                key={perm.id}
+                                className="flex items-start gap-3 text-gray-300 hover:text-white cursor-pointer p-2 rounded-md hover:bg-[#fbbf24]/5 transition-all"
+                              >
+                                <input
+                                  type="checkbox"
+                                  checked={form.permisos.includes(perm.id)}
+                                  onChange={() => togglePermiso(perm.id)}
+                                  className="w-4 h-4 mt-0.5 accent-[#fbbf24] cursor-pointer flex-shrink-0"
+                                />
+                                <div className="flex-1 min-w-0">
+                                  <p className="text-sm font-medium">{perm.nombre}</p>
+                                  <p className="text-xs text-gray-500 break-words">{perm.descripcion}</p>
+                                </div>
+                              </label>
+                            ))}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="flex flex-col sm:flex-row gap-3 pt-4">
+                    <button
+                      onClick={guardar}
+                      className="flex items-center justify-center gap-2 bg-[#fbbf24] text-black font-semibold px-6 py-2.5 rounded-lg hover:bg-[#f59e0b] transition-all transform hover:scale-105"
+                    >
+                      <Save className="h-4 w-4" />
+                      <span>{editingRole ? 'Actualizar Rol' : 'Crear Rol'}</span>
+                    </button>
+                    <button
+                      onClick={() => setShowForm(false)}
+                      className="flex items-center justify-center gap-2 bg-gray-600/20 text-white px-6 py-2.5 rounded-lg hover:bg-gray-600/30 transition-colors"
+                    >
+                      <X className="h-4 w-4" />
+                      <span>Cancelar</span>
+                    </button>
+                  </div>
                 </div>
               </div>
             )}
@@ -365,144 +475,257 @@ export function RolesAdmin() {
         {/* CONTENIDO: USUARIOS */}
         {activeTab === 'usuarios' && (
           <>
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-white text-2xl font-semibold">Usuarios del Sistema</h2>
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
+              <h2 className="text-white text-xl sm:text-2xl font-semibold">Usuarios del Sistema</h2>
               {!creatingUser && !editingUser && !changingPassword && (
-                <PoliceButton icon={Plus} onClick={iniciarCreacionUsuario}>Nuevo Usuario</PoliceButton>
+                <PoliceButton icon={Plus} onClick={iniciarCreacionUsuario}>
+                  <span className="hidden sm:inline">Nuevo Usuario</span>
+                  <span className="sm:hidden">Nuevo</span>
+                </PoliceButton>
               )}
             </div>
 
-            {/* Tabla de usuarios */}
+            {/* Vista Desktop: Tabla */}
             {!creatingUser && !editingUser && !changingPassword && (
-              <div className="bg-[#0a0a0a] p-6 rounded-xl">
-                <table className="w-full text-left text-white">
-                  <thead>
-                    <tr className="border-b border-[#fbbf24]/20">
-                      <th className="py-2">ID</th>
-                      <th>Username</th>
-                      <th>Nombre</th>
-                      <th>Rol</th>
-                      <th className="text-right">Acciones</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {usuarios.map((u) => (
-                      <tr key={u.id} className="border-b border-[#fbbf24]/10">
-                        <td className="py-3">{u.id}</td>
-                        <td className="font-semibold">{u.username}</td>
-                        <td className="text-gray-300">{u.nombre}</td>
-                        <td className="text-sm text-gray-300">{u.role_nombre}</td>
-                        <td className="text-right space-x-2">
-                          <button onClick={() => iniciarEdicionUsuario(u)} className="p-2 bg-blue-500/20 rounded-md">Editar</button>
-                          <button onClick={() => iniciarCambioPassword(u.id)} className="p-2 bg-green-500/20 rounded-md">Cambiar Contraseña</button>
-                          <button onClick={() => eliminarUsuario(u.id)} className="p-2 bg-red-500/20 rounded-md">Eliminar</button>
-                        </td>
+              <>
+                <div className="hidden lg:block bg-[#0a0a0a] p-6 rounded-xl overflow-x-auto">
+                  <table className="w-full text-left text-white">
+                    <thead>
+                      <tr className="border-b border-[#fbbf24]/20">
+                        <th className="py-2 px-2">ID</th>
+                        <th className="px-2">Username</th>
+                        <th className="px-2">Nombre</th>
+                        <th className="px-2">Rol</th>
+                        <th className="text-right px-2">Acciones</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+                    </thead>
+                    <tbody>
+                      {usuarios.map((u) => (
+                        <tr key={u.id} className="border-b border-[#fbbf24]/10 hover:bg-[#fbbf24]/5 transition-colors">
+                          <td className="py-3 px-2">{u.id}</td>
+                          <td className="font-semibold px-2">{u.username}</td>
+                          <td className="text-gray-300 px-2">{u.nombre}</td>
+                          <td className="text-sm text-gray-300 px-2">{u.role_nombre}</td>
+                          <td className="text-right px-2 space-x-2">
+                            <button onClick={() => iniciarEdicionUsuario(u)} className="px-3 py-1.5 bg-blue-500/20 hover:bg-blue-500/30 rounded-md text-sm transition-colors">Editar</button>
+                            <button onClick={() => iniciarCambioPassword(u.id)} className="px-3 py-1.5 bg-green-500/20 hover:bg-green-500/30 rounded-md text-sm transition-colors">Contraseña</button>
+                            <button onClick={() => eliminarUsuario(u.id)} className="px-3 py-1.5 bg-red-500/20 hover:bg-red-500/30 rounded-md text-sm transition-colors">Eliminar</button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+
+                {/* Vista Mobile/Tablet: Cards */}
+                <div className="lg:hidden grid grid-cols-1 gap-4">
+                  {usuarios.map((u) => (
+                    <div key={u.id} className="bg-[#0a0a0a] p-4 rounded-xl border border-[#fbbf24]/10">
+                      <div className="mb-3">
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className="text-xs text-gray-500">#{u.id}</span>
+                          <h3 className="text-white font-bold text-lg">{u.username}</h3>
+                        </div>
+                        <p className="text-gray-400 text-sm">{u.nombre}</p>
+                        <span className="inline-block mt-2 text-xs bg-[#fbbf24]/20 text-[#fbbf24] px-2 py-1 rounded">{u.role_nombre}</span>
+                      </div>
+
+                      <div className="grid grid-cols-1 gap-2">
+                        <button 
+                          onClick={() => iniciarEdicionUsuario(u)} 
+                          className="flex items-center justify-center gap-2 px-3 py-2 bg-blue-500/20 hover:bg-blue-500/30 rounded-md text-sm transition-colors"
+                        >
+                          <Edit2 className="h-4 w-4" />
+                          Editar
+                        </button>
+                        <button 
+                          onClick={() => iniciarCambioPassword(u.id)} 
+                          className="flex items-center justify-center gap-2 px-3 py-2 bg-green-500/20 hover:bg-green-500/30 rounded-md text-sm transition-colors"
+                        >
+                          <Key className="h-4 w-4" />
+                          Cambiar Contraseña
+                        </button>
+                        <button 
+                          onClick={() => eliminarUsuario(u.id)} 
+                          className="flex items-center justify-center gap-2 px-3 py-2 bg-red-500/20 hover:bg-red-500/30 rounded-md text-sm transition-colors"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                          Eliminar
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </>
             )}
 
             {/* Formulario de creación/edición */}
             {(creatingUser || editingUser) && (
-              <div className="bg-[#0a0a0a] p-6 rounded-xl">
-                <h3 className="text-white text-xl font-semibold mb-4">{creatingUser ? 'Crear Usuario' : 'Editar Usuario'}</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                  <input
-                    type="text"
-                    value={userForm.username}
-                    onChange={(e) => setUserForm({ ...userForm, username: e.target.value })}
-                    placeholder="Username"
-                    className="p-3 bg-[#070707] rounded-md text-white"
-                  />
-                  <input
-                    type="text"
-                    value={userForm.nombre}
-                    onChange={(e) => setUserForm({ ...userForm, nombre: e.target.value })}
-                    placeholder="Nombre completo"
-                    className="p-3 bg-[#070707] rounded-md text-white"
-                  />
-                  <select
-                    value={userForm.role_id}
-                    onChange={(e) => setUserForm({ ...userForm, role_id: parseInt(e.target.value) })}
-                    className="p-3 bg-[#070707] rounded-md text-white"
-                  >
-                    <option value={0}>Seleccionar rol</option>
-                    {roles.map((r) => (
-                      <option key={r.id} value={r.id}>{r.nombre}</option>
-                    ))}
-                  </select>
-                </div>
-
-                {creatingUser && (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                    <div className="relative">
+              <div className="bg-[#0a0a0a] p-4 sm:p-6 rounded-xl max-w-3xl mx-auto">
+                <h3 className="text-[#fbbf24] font-bold text-lg sm:text-xl mb-4">
+                  {creatingUser ? 'Crear Nuevo Usuario' : 'Editar Usuario'}
+                </h3>
+                
+                <div className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="text-white block mb-2 text-sm font-medium">Username</label>
                       <input
-                        type={showPassword ? 'text' : 'password'}
-                        value={userForm.password}
-                        onChange={(e) => setUserForm({ ...userForm, password: e.target.value })}
-                        placeholder="Contraseña"
-                        className="p-3 bg-[#070707] rounded-md text-white w-full"
+                        type="text"
+                        value={userForm.username}
+                        onChange={(e) => setUserForm({ ...userForm, username: e.target.value })}
+                        placeholder="Ej: vendedor1"
+                        className="w-full p-3 bg-[#1a1a1a] rounded-lg text-white border border-[#fbbf24]/20 focus:border-[#fbbf24] focus:outline-none transition-colors"
                       />
-                      <button
-                        type="button"
-                        onClick={() => setShowPassword(!showPassword)}
-                        className="absolute right-3 top-3 text-gray-400 hover:text-white"
-                      >
-                        {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
-                      </button>
                     </div>
+                    <div>
+                      <label className="text-white block mb-2 text-sm font-medium">Nombre Completo</label>
+                      <input
+                        type="text"
+                        value={userForm.nombre}
+                        onChange={(e) => setUserForm({ ...userForm, nombre: e.target.value })}
+                        placeholder="Ej: Juan Pérez"
+                        className="w-full p-3 bg-[#1a1a1a] rounded-lg text-white border border-[#fbbf24]/20 focus:border-[#fbbf24] focus:outline-none transition-colors"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="text-white block mb-2 text-sm font-medium">Teléfono</label>
                     <input
-                      type={showPassword ? 'text' : 'password'}
-                      value={userForm.password_confirm}
-                      onChange={(e) => setUserForm({ ...userForm, password_confirm: e.target.value })}
-                      placeholder="Confirmar contraseña"
-                      className="p-3 bg-[#070707] rounded-md text-white"
+                      type="tel"
+                      value={userForm.telefono}
+                      onChange={(e) => setUserForm({ ...userForm, telefono: e.target.value })}
+                      placeholder="Ej: +54 9 11 1234-5678"
+                      className="w-full p-3 bg-[#1a1a1a] rounded-lg text-white border border-[#fbbf24]/20 focus:border-[#fbbf24] focus:outline-none transition-colors"
                     />
                   </div>
-                )}
 
-                <div className="flex gap-3">
-                  <PoliceButton icon={Save} onClick={guardarUsuario}>Guardar Usuario</PoliceButton>
-                  <PoliceButton icon={X} variant="secondary" onClick={cancelarUsuario}>Cancelar</PoliceButton>
+                  <div>
+                    <label className="text-white block mb-2 text-sm font-medium">Rol</label>
+                    <select
+                      value={userForm.role_id}
+                      onChange={(e) => setUserForm({ ...userForm, role_id: parseInt(e.target.value) })}
+                      className="w-full p-3 bg-[#1a1a1a] rounded-lg text-white border border-[#fbbf24]/20 focus:border-[#fbbf24] focus:outline-none transition-colors"
+                    >
+                      <option value={0}>Seleccionar rol</option>
+                      {roles.map((r) => (
+                        <option key={r.id} value={r.id}>{r.nombre}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  {creatingUser && (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="text-white block mb-2 text-sm font-medium">Contraseña</label>
+                        <div className="relative">
+                          <input
+                            type={showPassword ? 'text' : 'password'}
+                            value={userForm.password}
+                            onChange={(e) => setUserForm({ ...userForm, password: e.target.value })}
+                            placeholder="Mínimo 6 caracteres"
+                            className="w-full p-3 bg-[#1a1a1a] rounded-lg text-white border border-[#fbbf24]/20 focus:border-[#fbbf24] focus:outline-none transition-colors pr-10"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => setShowPassword(!showPassword)}
+                            className="absolute right-3 top-3 text-gray-400 hover:text-white transition-colors"
+                          >
+                            {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                          </button>
+                        </div>
+                      </div>
+                      <div>
+                        <label className="text-white block mb-2 text-sm font-medium">Confirmar Contraseña</label>
+                        <input
+                          type={showPassword ? 'text' : 'password'}
+                          value={userForm.password_confirm}
+                          onChange={(e) => setUserForm({ ...userForm, password_confirm: e.target.value })}
+                          placeholder="Repetir contraseña"
+                          className="w-full p-3 bg-[#1a1a1a] rounded-lg text-white border border-[#fbbf24]/20 focus:border-[#fbbf24] focus:outline-none transition-colors"
+                        />
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="flex flex-col sm:flex-row gap-3 pt-4">
+                    <button
+                      onClick={guardarUsuario}
+                      className="flex items-center justify-center gap-2 bg-[#fbbf24] text-black font-semibold px-6 py-2.5 rounded-lg hover:bg-[#f59e0b] transition-all transform hover:scale-105"
+                    >
+                      <Save className="h-4 w-4" />
+                      <span>Guardar Usuario</span>
+                    </button>
+                    <button
+                      onClick={cancelarUsuario}
+                      className="flex items-center justify-center gap-2 bg-gray-600/20 text-white px-6 py-2.5 rounded-lg hover:bg-gray-600/30 transition-colors"
+                    >
+                      <X className="h-4 w-4" />
+                      <span>Cancelar</span>
+                    </button>
+                  </div>
                 </div>
               </div>
             )}
 
             {/* Formulario de cambio de contraseña */}
             {changingPassword && (
-              <div className="bg-[#0a0a0a] p-6 rounded-xl">
-                <h3 className="text-white text-xl font-semibold mb-4">Cambiar Contraseña</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                  <div className="relative">
-                    <input
-                      type={showPassword ? 'text' : 'password'}
-                      value={userForm.password}
-                      onChange={(e) => setUserForm({ ...userForm, password: e.target.value })}
-                      placeholder="Nueva contraseña"
-                      className="p-3 bg-[#070707] rounded-md text-white w-full"
-                    />
+              <div className="bg-[#0a0a0a] p-4 sm:p-6 rounded-xl max-w-2xl mx-auto">
+                <h3 className="text-[#fbbf24] font-bold text-lg sm:text-xl mb-4 flex items-center gap-2">
+                  <Key className="h-5 w-5" />
+                  Cambiar Contraseña
+                </h3>
+                
+                <div className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="text-white block mb-2 text-sm font-medium">Nueva Contraseña</label>
+                      <div className="relative">
+                        <input
+                          type={showPassword ? 'text' : 'password'}
+                          value={userForm.password}
+                          onChange={(e) => setUserForm({ ...userForm, password: e.target.value })}
+                          placeholder="Mínimo 6 caracteres"
+                          className="w-full p-3 bg-[#1a1a1a] rounded-lg text-white border border-[#fbbf24]/20 focus:border-[#fbbf24] focus:outline-none transition-colors pr-10"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowPassword(!showPassword)}
+                          className="absolute right-3 top-3 text-gray-400 hover:text-white transition-colors"
+                        >
+                          {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                        </button>
+                      </div>
+                    </div>
+                    <div>
+                      <label className="text-white block mb-2 text-sm font-medium">Confirmar Nueva Contraseña</label>
+                      <input
+                        type={showPassword ? 'text' : 'password'}
+                        value={userForm.password_confirm}
+                        onChange={(e) => setUserForm({ ...userForm, password_confirm: e.target.value })}
+                        placeholder="Repetir contraseña"
+                        className="w-full p-3 bg-[#1a1a1a] rounded-lg text-white border border-[#fbbf24]/20 focus:border-[#fbbf24] focus:outline-none transition-colors"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="flex flex-col sm:flex-row gap-3 pt-4">
                     <button
-                      type="button"
-                      onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-3 top-3 text-gray-400 hover:text-white"
+                      onClick={cambiarPassword}
+                      className="flex items-center justify-center gap-2 bg-green-500/80 hover:bg-green-500 text-white font-semibold px-6 py-2.5 rounded-lg transition-all transform hover:scale-105"
                     >
-                      {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                      <Key className="h-4 w-4" />
+                      <span>Cambiar Contraseña</span>
+                    </button>
+                    <button
+                      onClick={cancelarUsuario}
+                      className="flex items-center justify-center gap-2 bg-gray-600/20 text-white px-6 py-2.5 rounded-lg hover:bg-gray-600/30 transition-colors"
+                    >
+                      <X className="h-4 w-4" />
+                      <span>Cancelar</span>
                     </button>
                   </div>
-                  <input
-                    type={showPassword ? 'text' : 'password'}
-                    value={userForm.password_confirm}
-                    onChange={(e) => setUserForm({ ...userForm, password_confirm: e.target.value })}
-                    placeholder="Confirmar nueva contraseña"
-                    className="p-3 bg-[#070707] rounded-md text-white"
-                  />
-                </div>
-
-                <div className="flex gap-3">
-                  <PoliceButton icon={Key} onClick={cambiarPassword}>Cambiar Contraseña</PoliceButton>
-                  <PoliceButton icon={X} variant="secondary" onClick={cancelarUsuario}>Cancelar</PoliceButton>
                 </div>
               </div>
             )}

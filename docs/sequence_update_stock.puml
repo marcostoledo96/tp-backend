@@ -1,0 +1,47 @@
+@startuml
+title Actualización de Stock de Producto (PUT /api/productos/:id)
+actor Vendedor as V
+participant "Frontend React\n(AdminPanel / Edit Product)" as FE
+participant "AuthContext" as AUTH
+participant "Express Router /productos" as R
+participant "Middleware verificarAutenticacion" as M1
+participant "Middleware verificarPermiso" as M2
+participant "ProductoController.actualizarProducto" as PC
+participant "ProductoModel" as PM
+participant "DB" as DB
+
+V -> FE: Abre formulario producto
+FE -> R: GET /api/productos/:id
+R -> PC: obtenerProductoPorId(id)
+PC -> PM: obtenerProductoPorId(id)
+PM -> DB: SELECT * FROM productos WHERE id=?
+DB --> PM: Datos producto
+PM --> PC: Producto
+PC --> R: 200 { producto }
+R --> FE: Renderiza formulario con stock actual
+
+V -> FE: Cambia campo stock (ej: 12 -> 5)
+V -> FE: Guarda cambios
+FE -> AUTH: Obtener token
+AUTH --> FE: token
+FE -> R: PUT /api/productos/123 { stock:5 } (Authorization: Bearer)
+R -> M1: verificarAutenticacion
+M1 -> M2: verificarPermiso('gestionar_productos')
+M2 -> DB: SELECT permisos del rol
+DB --> M2: Lista permisos
+alt Tiene permiso
+  M2 --> R: OK
+  R -> PC: actualizarProducto(123, { stock:5 })
+  PC -> PM: actualizarProducto(123, datos)
+  PM -> DB: UPDATE productos SET stock=5 WHERE id=123
+  DB --> PM: changes=1
+  PM --> PC: resultado
+  PC --> R: 200 { mensaje:'Producto actualizado' }
+  R --> FE: Éxito
+  FE -> V: Mostrar confirmación / refrescar lista
+else Sin permiso
+  M2 --> R: 403 { error:'Permiso insuficiente' }
+  R --> FE: Error
+  FE -> V: Mostrar acceso denegado
+end
+@enduml

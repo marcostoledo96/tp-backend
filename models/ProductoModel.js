@@ -13,7 +13,7 @@ function obtenerProductos() {
   const productos = db.prepare(`
     SELECT id, nombre, categoria, subcategoria, precio, stock, descripcion, imagen_url, activo
     FROM productos
-    WHERE activo = 1
+    WHERE activo = 1 AND stock > 0
     ORDER BY categoria, subcategoria, nombre
   `).all();
   db.close();
@@ -21,7 +21,7 @@ function obtenerProductos() {
   return productos.map(p => ({
     ...p,
     activo: Boolean(p.activo),
-    disponible: Boolean(p.activo) // Alias para compatibilidad
+    disponible: p.stock > 0 && Boolean(p.activo)
   }));
 }
 
@@ -64,7 +64,7 @@ function obtenerProductoPorId(id) {
   return {
     ...producto,
     activo: Boolean(producto.activo),
-    disponible: Boolean(producto.activo)
+    disponible: producto.stock > 0 && Boolean(producto.activo)
   };
 }
 

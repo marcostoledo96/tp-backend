@@ -34,5 +34,7 @@ export interface Order {
 
 export interface VendorUser {
   username: string;
-  role: 'admin' | 'vendedor' | 'visitador';
+  role: 'admin' | 'vendedor' | 'visitador' | 'comprador';
+  name?: string; // nombre completo opcional para saludo
+  phone?: string | null; // teléfono opcional
 }

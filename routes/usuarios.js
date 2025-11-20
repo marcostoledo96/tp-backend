@@ -25,6 +25,12 @@ const bloquearEscrituraEnVercel = (req, res, next) => {
 // Todas las rutas requieren autenticación
 router.use(verificarAutenticacion);
 
+// PUT /api/usuarios/profile - Actualizar perfil propio (cualquier usuario autenticado)
+router.put('/profile', 
+  bloquearEscrituraEnVercel,
+  UsuarioController.actualizarPerfil
+);
+
 // GET /api/usuarios - Listar todos los usuarios (admin y vendedor pueden ver)
 router.get('/', 
   verificarPermiso(['gestionar_usuarios', 'ver_usuarios']),

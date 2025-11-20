@@ -43,10 +43,15 @@ const bloquearComprasEnVercel = (req, res, next) => {
 };
 
 // 🛍️ POST /api/compras - Crear una nueva compra (BLOQUEADO EN VERCEL)
-// Yo: Esta ruta es pública para permitir que usuarios no autenticados puedan comprar.
-// En el TP se pide que solo usuarios registrados compren, por lo que debería tener verificarAutenticacion.
-// Por ahora la dejo pública para mantener compatibilidad con el flujo existente.
-router.post('/', bloquearComprasEnVercel, upload.single('comprobante'), CompraController.crearCompra);
+// Requiere autenticación y permiso para crear compras.
+router.post(
+  '/',
+  verificarAutenticacion,
+  verificarPermiso('crear_compra'),
+  bloquearComprasEnVercel,
+  upload.single('comprobante'),
+  CompraController.crearCompra
+);
 
 // 📋 GET /api/compras - Listar todas las compras (requiere autenticación y permisos)
 // Yo: Solo usuarios con permiso 'ver_compras' pueden ver el historial de ventas.

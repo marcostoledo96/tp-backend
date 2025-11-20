@@ -13,7 +13,9 @@ import { VendorLogin } from './views/VendorLogin';
 import { AdminPanelNew } from './views/AdminPanelNew';
 import { UsuariosAdmin } from './views/UsuariosAdmin';
 import { RolesAdmin } from './views/RolesAdmin';
+import Profile from './views/Profile';
 import { Toaster } from './views/ui/sonner';
+import { Toaster as HotToaster } from 'react-hot-toast';
 
 // Componente para proteger rutas que requieren autenticación
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
@@ -45,10 +47,32 @@ function AppContent() {
           <Routes>
             <Route path="/" element={<LandingPage />} />
             <Route path="/menu" element={<Menu />} />
-            <Route path="/cart" element={<Cart />} />
-            <Route path="/checkout" element={<Checkout />} />
+            <Route 
+              path="/cart" 
+              element={
+                <ProtectedRoute>
+                  <Cart />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/checkout" 
+              element={
+                <ProtectedRoute>
+                  <Checkout />
+                </ProtectedRoute>
+              } 
+            />
             <Route path="/order-confirmation" element={<OrderConfirmation />} />
             <Route path="/vendor/login" element={<VendorLogin />} />
+            <Route 
+              path="/profile" 
+              element={
+                <ProtectedRoute>
+                  <Profile />
+                </ProtectedRoute>
+              } 
+            />
             <Route 
               path="/vendor/panel" 
               element={
@@ -77,6 +101,7 @@ function AppContent() {
         </main>
         <Footer />
         <Toaster position="top-right" />
+        <HotToaster position="top-right" />
       </div>
     </Router>
   );

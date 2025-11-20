@@ -1,0 +1,35 @@
+@startuml
+title Migraciones y Verificación de Esquema
+actor Dev as D
+participant "Script run-migration.js" as RM
+participant "Script migraciones/*.sql" as SQL
+participant "DB (SQLite)" as DB
+participant "Script verificar-esquema.js" as VS
+
+D -> RM: node db/run-migration.js
+RM -> DB: BEGIN TRANSACTION
+RM -> SQL: Leer archivos .sql (ordenados)
+loop por cada migration
+  SQL -> DB: Ejecutar statements (ALTER/CREATE)
+  alt Error
+    DB --> RM: Error
+    RM -> DB: ROLLBACK
+    RM --> D: Falla migración
+    stop
+  else OK
+    DB --> RM: changes
+  end
+end
+RM -> DB: COMMIT
+RM --> D: Migraciones aplicadas
+
+D -> VS: node scripts/verificar-esquema.js
+VS -> DB: PRAGMA table_info(usuarios)
+DB --> VS: Columnas usuarios
+VS -> DB: PRAGMA table_info(productos)
+DB --> VS: Columnas productos
+VS -> DB: SELECT nombre FROM roles
+DB --> VS: Lista roles
+VS -> VS: Validar presencia de columnas (telefono, listo, etc.)
+VS --> D: Reporte estructura OK / faltante
+@enduml
